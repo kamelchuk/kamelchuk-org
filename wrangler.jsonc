@@ -1,0 +1,10 @@
+// Статичний сайт на Cloudflare (Workers Static Assets). Збірка: npm run build → dist/.
+// Форма звернень (functions/api) підключається окремо, коли будуть KV і секрети; див. README.
+{
+  "name": "kamelchuk-org",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page"
+  }
+}
