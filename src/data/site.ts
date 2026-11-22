@@ -5,7 +5,8 @@ export type Lang = 'uk' | 'en';
 // після отримання професійного портрета (див. бриф, розділ 8).
 const CDN = 'https://res2.weblium.site/res/69980c6e3f713a88dfcd471e';
 export const photos = {
-  portrait: `${CDN}/69a4bc3b390d65531eab3b26?nowebp`,
+  portrait: '/images/yurii-portrait.jpg',
+  portraitFull: '/images/press/yurii-kamelchuk-portrait.jpg',
   hero: `${CDN}/69a4c52ada31b75849241302?nowebp`,
 };
 
