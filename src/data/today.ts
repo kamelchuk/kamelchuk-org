@@ -9,8 +9,9 @@ export const videoOfDay = {
   title: { uk: 'Правковий тероризм: торгівля правками завжди буде. Ранок.LIVE', en: 'Amendment terrorism: the trade in amendments will always exist. Ranok.LIVE' },
 };
 export const photoOfDay = {
-  // ТИМЧАСОВО: кадр із відео, поки немає посилання на фото з Instagram
-  image: 'https://i.ytimg.com/vi/6HaWC2J1TPs/maxres3.jpg',
+  // фото з Instagram (вибрав Юрій): https://www.instagram.com/p/CdGM9B3NlM9/
+  image: 'https://www.instagram.com/p/CdGM9B3NlM9/media/?size=l',
+  link: 'https://www.instagram.com/p/CdGM9B3NlM9/',
   caption: { uk: 'Найновіше фото з Instagram', en: 'Latest photo from Instagram' },
 };
 export const myActions = {
