@@ -1,0 +1,19 @@
+---
+import type { Lang } from '../data/site';
+import { pillars } from '../data/site';
+import { fmtDate } from '../i18n';
+interface Props { lang: Lang; href: string; title: string; date: Date; image?: string; pillar?: string; excerpt: string }
+const { lang, href, title, date, image, pillar, excerpt } = Astro.props;
+const p = pillars.find((x) => x.id === pillar);
+---
+<a class="card post" href={href}>
+  {image && <img src={image} alt="" loading="lazy" />}
+  <div class="meta">{p && <span class="tag">{p[lang].t}</span>}<span class="muted">{fmtDate(date, lang)}</span></div>
+  <h3>{title}</h3>
+  <p class="muted">{excerpt}</p>
+</a>
+<style>
+  .post { display: flex; flex-direction: column; gap: 8px; }
+  .post img { border-radius: 10px; aspect-ratio: 16/9; object-fit: cover; margin-bottom: 6px; }
+  .meta { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; font-size: .85rem; }
+</style>

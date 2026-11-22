@@ -1,0 +1,11 @@
+// Статичний сайт на Cloudflare (Workers Static Assets). Збірка: npm run build → dist/.
+// Форма «Долучитися» (functions/api/join.ts) підключається окремо, коли будуть KV, бот, таблиця і пошта; див. README.
+{
+  "name": "kamelchuk-org-ua",
+  "compatibility_date": "2026-11-01",
+  "build": { "command": "npm run build" },
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page"
+  }
+}

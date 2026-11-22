@@ -1,0 +1,38 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import JoinCta from '../components/JoinCta.astro';
+import type { Lang } from '../data/site';
+import { photos, pillars, contacts } from '../data/site';
+import { t, other } from '../i18n';
+const { lang } = Astro.props as { lang: Lang };
+const s = t(lang); const uk = lang === 'uk';
+const facts = uk
+  ? [['Народний депутат України', 'Верховна Рада, виборчий округ №124'], ['Член делегації в ПАРЄ', 'Парламентська асамблея Ради Європи'], ['Енергетика', 'Член профільного комітету Верховної Ради'], ['Лідер партії', '«Українська Нація»']]
+  : [['Member of Parliament of Ukraine', 'Verkhovna Rada, electoral district No. 124'], ['Member of the PACE delegation', 'Parliamentary Assembly of the Council of Europe'], ['Energy', 'Member of the Rada’s energy committee'], ['Party leader', 'Ukrainian Nation']];
+---
+<Base lang={lang} title={s.about} alt={other('about', lang)}>
+  <PageHead eyebrow={s.about} title={s.leader} lead={s.role} />
+  <section class="section"><div class="wrap about">
+    <img src={photos.portraitFull} alt={s.leader} class="ph" />
+    <div class="prose">
+      <p class="big">{uk
+        ? 'Політик сильної держави, який пояснює складну політику просто, має парламентський і міжнародний досвід та збирає команду для оновлення України.'
+        : 'A politician for a strong state who explains complex politics simply, brings parliamentary and international experience, and is building a team to renew Ukraine.'}</p>
+      <p>{uk ? 'Юрій Камельчук — лідер політичної сили з планом держави. Його команда працює на парламентських, місцевих і президентських виборах і будує мережу людей, готових брати відповідальність у своїх громадах.' : 'Yurii Kamelchuk leads a political force with a plan for the state. His team works in parliamentary, local and presidential elections and is building a network of people ready to take responsibility in their communities.'}</p>
+      <div class="grid g2" style="margin:24px 0">
+        {facts.map(([a, b]) => <div class="card"><strong>{a}</strong><p class="muted">{b}</p></div>)}
+      </div>
+      <h3>{uk ? 'П’ять напрямів роботи' : 'Five areas of work'}</h3>
+      <ul>{pillars.map((p) => <li><strong>{p[lang].t}.</strong> {p[lang].d}</li>)}</ul>
+      <p>{uk ? 'Біографія, депутатська діяльність і звернення до депутата — на особистому сайті ' : 'Biography, parliamentary work and appeals are on the personal website '}<a href={contacts.personalSite} target="_blank" rel="noopener">kamelchuk.org</a>.</p>
+    </div>
+  </div></section>
+  <JoinCta lang={lang} />
+</Base>
+<style>
+  .about { display: grid; grid-template-columns: .8fr 1.2fr; gap: 48px; align-items: start; }
+  .ph { border-radius: var(--radius); width: 100%; object-fit: cover; }
+  .big { font-family: var(--font-head); font-size: 1.35rem; line-height: 1.4; }
+  @media (max-width: 860px) { .about { grid-template-columns: 1fr; } .ph { max-height: 420px; object-position: top; } }
+</style>

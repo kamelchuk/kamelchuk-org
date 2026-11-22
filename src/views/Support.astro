@@ -1,0 +1,42 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import type { Lang } from '../data/site';
+import { donationTargets, contacts } from '../data/site';
+import { t, other } from '../i18n';
+const { lang } = Astro.props as { lang: Lang };
+const s = t(lang); const uk = lang === 'uk';
+const amounts = [100, 200, 500, 1000, 5000];
+---
+<Base lang={lang} title={s.support} alt={other('support', lang)}>
+  <PageHead eyebrow={s.support} title={uk ? 'Підтримати команду і проєкти' : 'Support the team and projects'} lead={uk ? 'Оберіть, кого підтримати, суму і формат: разово чи щомісяця. Кошти йдуть на рахунок обраного проєкту або партії.' : 'Choose what to support, the amount and whether it is one-off or monthly. Funds go to the account of the chosen project or the party.'} />
+  <section class="section"><div class="wrap support">
+    <form class="card" id="donate">
+      <div class="field"><label>{uk ? 'Кого підтримати' : 'What to support'}</label>
+        <select name="target">{donationTargets[lang].map((x) => <option>{x}</option>)}</select></div>
+      <div class="field"><label>{uk ? 'Сума, грн' : 'Amount, UAH'}</label>
+        <div class="chips">{amounts.map((a, i) => <label class="chip"><input type="radio" name="amount" value={a} checked={i === 1} />{a}</label>)}</div>
+        <input name="custom" type="number" min="10" placeholder={uk ? 'Інша сума' : 'Other amount'} style="margin-top:10px" />
+      </div>
+      <div class="field"><label>{uk ? 'Формат' : 'Frequency'}</label>
+        <div class="chips">
+          <label class="chip"><input type="radio" name="freq" value="once" checked />{uk ? 'Разово' : 'One-off'}</label>
+          <label class="chip"><input type="radio" name="freq" value="monthly" />{uk ? 'Щомісяця' : 'Monthly'}</label>
+        </div>
+      </div>
+      <button class="btn btn-primary" type="button" disabled>{uk ? 'Підтримати' : 'Support'}</button>
+      <p class="notice" style="margin-top:16px">{uk ? 'Оплата запрацює після погодження реквізитів рахунків. Поки що напишіть нам: ' : 'Payment will open once the account details are confirmed. Meanwhile, write to us: '}<a href={`mailto:${contacts.email}`}>{contacts.email}</a></p>
+    </form>
+    <div class="prose">
+      <h3 style="margin-top:0">{uk ? 'Прозорість' : 'Transparency'}</h3>
+      <p>{uk ? 'Партія встановлює жорсткий ліміт на внесок від однієї особи, щоб унеможливити вплив фінансових монополій. Основне джерело фінансування кампаній — масовий краудфандинг.' : 'The party sets a strict cap on contributions from any single person, so no financial monopoly can buy influence. Mass crowdfunding is the main source of campaign funding.'}</p>
+      <p>{uk ? 'Ми прагнемо до блокчейн-звітності про надходження і витрати.' : 'We are working towards blockchain reporting of income and spending.'}</p>
+      <p class="muted">{uk ? 'Внески до політичної партії приймаються відповідно до законодавства України.' : 'Contributions to a political party are accepted in line with Ukrainian law.'}</p>
+    </div>
+  </div></section>
+</Base>
+<style>
+  .support { display: grid; grid-template-columns: 1.1fr .9fr; gap: 40px; align-items: start; }
+  @media (max-width: 860px) { .support { grid-template-columns: 1fr; } }
+  button[disabled] { opacity: .5; cursor: not-allowed; }
+</style>

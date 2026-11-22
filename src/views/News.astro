@@ -1,0 +1,22 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import PostCard from '../components/PostCard.astro';
+import { getCollection } from 'astro:content';
+import type { Lang } from '../data/site';
+import { pillars } from '../data/site';
+import { t, href, other } from '../i18n';
+const { lang } = Astro.props as { lang: Lang };
+const s = t(lang); const uk = lang === 'uk';
+const news = (await getCollection('news', (e) => e.id.startsWith(lang + '/') && !e.data.draft)).sort((a, b) => +b.data.date - +a.data.date);
+---
+<Base lang={lang} title={s.news} alt={other('news', lang)}>
+  <PageHead eyebrow={s.news} title={uk ? 'Новини кампанії' : 'Campaign news'} lead={uk ? 'Події, зустрічі та рішення команди за п’ятьма напрямами.' : 'Team events, meetings and decisions across five areas.'} />
+  <section class="section"><div class="wrap">
+    <div class="chips" style="margin-bottom:28px">{pillars.map((p) => <a class="chip" id={p.id} href={`#${p.id}`}>{p.icon} {p[lang].t}</a>)}</div>
+    {news.length
+      ? <div class="grid g3">{news.map((n) => <PostCard lang={lang} href={`${href('news', lang)}${n.id.split('/')[1]}/`} title={n.data.title} date={n.data.date} image={n.data.image} pillar={n.data.pillar} excerpt={n.data.excerpt} />)}</div>
+      : <div class="placeholder">{uk ? 'Перші новини кампанії з’являться найближчим часом.' : 'The first campaign news will appear soon.'}</div>}
+  </div></section>
+</Base>
+<style>.chip { text-decoration: none; }</style>

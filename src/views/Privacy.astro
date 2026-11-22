@@ -1,0 +1,25 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import type { Lang } from '../data/site';
+import { contacts } from '../data/site';
+import { t, other } from '../i18n';
+const { lang } = Astro.props as { lang: Lang };
+const s = t(lang); const uk = lang === 'uk';
+---
+<Base lang={lang} title={s.privacy} alt={other('privacy', lang)}>
+  <PageHead title={s.privacy} />
+  <section class="section"><div class="wrap prose">
+    {uk ? <>
+      <p><em>Чернетка. Остаточний текст затверджує юрист команди.</em></p>
+      <p>Персональні дані, які ви залишаєте у заявці (ПІБ, телефон, email, Telegram, область, населений пункт, вік, обрана роль і напрям), використовуються лише для зв’язку з вами та організації роботи команди відповідно до Закону України «Про захист персональних даних».</p>
+      <p>Доступ до заявок мають координатори команди. Дані не передаються третім особам, крім випадків, передбачених законом.</p>
+      <p>Щоб змінити або видалити свої дані, напишіть на <a href={`mailto:${contacts.email}`}>{contacts.email}</a>.</p>
+    </> : <>
+      <p><em>Draft. The final text is approved by the team’s lawyer.</em></p>
+      <p>Personal data you submit in the application (name, phone, email, Telegram, region, town, age, chosen role and area) is used only to contact you and organise the team’s work, in line with the Law of Ukraine "On Personal Data Protection".</p>
+      <p>Applications are accessed only by team coordinators. Data is not shared with third parties except where required by law.</p>
+      <p>To change or delete your data, write to <a href={`mailto:${contacts.email}`}>{contacts.email}</a>.</p>
+    </>}
+  </div></section>
+</Base>

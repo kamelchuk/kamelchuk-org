@@ -1,0 +1,29 @@
+---
+// Мапа штабів: Leaflet (з npm, без стороннього CDN) + тайли OpenStreetMap.
+// Нові штаби додаються в src/data/site.ts (hqs).
+import 'leaflet/dist/leaflet.css';
+import type { Lang } from '../data/site';
+import { hqs } from '../data/site';
+const { lang } = Astro.props as { lang: Lang };
+const points = hqs.map((h) => ({ lat: h.lat, lng: h.lng, name: h.name[lang], address: h.address[lang], phone: h.phone }));
+---
+<div class="hq-map" data-points={JSON.stringify(points)}></div>
+<script>
+  import L from 'leaflet';
+  document.querySelectorAll<HTMLDivElement>('.hq-map').forEach((el) => {
+    const pts = JSON.parse(el.dataset.points!) as { lat: number; lng: number; name: string; address: string; phone: string }[];
+    const map = L.map(el, { scrollWheelZoom: false }).setView([49.0, 31.2], 6);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '&copy; OpenStreetMap' }).addTo(map);
+    const icon = L.divIcon({ className: 'hq-pin', html: '<span></span>', iconSize: [22, 22], iconAnchor: [11, 11] });
+    pts.forEach((p) => {
+      L.marker([p.lat, p.lng], { icon }).addTo(map)
+        .bindPopup(`<strong>${p.name}</strong><br>${p.address}<br><a href="tel:${p.phone.replace(/\s/g, '')}">${p.phone}</a>`);
+    });
+    if (pts.length > 1) map.fitBounds(L.latLngBounds(pts.map((p) => [p.lat, p.lng] as [number, number])), { padding: [60, 60], maxZoom: 7 });
+  });
+</script>
+<style is:global>
+  .hq-map { height: 420px; border-radius: var(--radius); border: 1px solid var(--line); z-index: 0; background: #e9edf2; }
+  .hq-pin span { display: block; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); border: 4px solid #fff; box-shadow: 0 2px 8px rgba(0,0,0,.35); }
+  @media (max-width: 640px) { .hq-map { height: 320px; } }
+</style>

@@ -1,0 +1,35 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import { getCollection } from 'astro:content';
+import type { Lang } from '../data/site';
+import { t, other } from '../i18n';
+const { lang } = Astro.props as { lang: Lang };
+const s = t(lang); const uk = lang === 'uk';
+const docs = (await getCollection('docs', (e) => !e.data.hidden)).sort((a, b) => a.data.order - b.data.order);
+const en: Record<string, [string, string]> = {
+  ideolohiia: ['Ideology', 'The Strength. Law. Development. triad and the party’s ideological backbone'],
+  misiia: ['Mission', 'Why the Ukrainian Nation exists'],
+  'velyka-tsil': ['The big goal', 'Where we are taking the state in 25 years'],
+  tsinnosti: ['Core values', 'Our moral compass'],
+  manifest: ['Manifesto', 'The Ukrainian Nation’s address to everyone who cares about Ukraine'],
+  klyatva: ['Oath', 'A party member’s commitments'],
+  prohrama: ['Party programme', 'Strength. Law. Development: what we do'],
+  systema: ['The Ukrainian Nation System', 'How the nation’s and the state’s renewal fits together'],
+  proiekty: ['Projects', 'The list of Ukrainian Nation projects'],
+  rehlament: ['Rules of interaction', 'The rules the party works by'],
+  '20-priorytetiv': ['20 priorities for the first year', 'The plan of first steps'],
+};
+---
+<Base lang={lang} title={s.docs} alt={other('docs', lang)}>
+  <PageHead eyebrow={s.docs} title={uk ? 'Документи команди' : 'Team documents'} lead={uk ? 'Перед тим як долучитися, ознайомтеся з документами: на них тримається наша робота.' : 'Before you join, please read the documents our work is based on.'} />
+  <section class="section"><div class="wrap">
+    {!uk && <p class="notice" style="margin-bottom:24px">The documents are currently available in Ukrainian. English translations are being prepared.</p>}
+    <div class="grid g3">
+      {docs.map((d, i) => {
+        const slug = d.id.split('/')[1];
+        return <a class="card" href={`/dokumenty/${slug}/`}><span class="num-badge">{i + 1}</span><h3>{uk ? d.data.title : en[slug]?.[0] ?? d.data.title}</h3><p class="muted">{uk ? d.data.description : en[slug]?.[1] ?? d.data.description}</p></a>;
+      })}
+    </div>
+  </div></section>
+</Base>

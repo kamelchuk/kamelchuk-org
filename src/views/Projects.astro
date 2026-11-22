@@ -1,0 +1,20 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import JoinCta from '../components/JoinCta.astro';
+import type { Lang } from '../data/site';
+import { projects } from '../data/site';
+import { t, href, other } from '../i18n';
+const { lang } = Astro.props as { lang: Lang };
+const s = t(lang); const uk = lang === 'uk';
+---
+<Base lang={lang} title={s.projects} alt={other('projects', lang)}>
+  <PageHead eyebrow={s.projects} title={uk ? 'Проєкти Української Нації' : 'Ukrainian Nation projects'}
+    lead={uk ? 'Проєкти партії та організацій, з якими працює команда. У кожному потрібні люди: оберіть напрям у заявці.' : 'Projects of the party and partner organisations. Each one needs people: choose your area in the application.'} />
+  <section class="section"><div class="wrap grid g3">
+    {projects.map((p, i) => <div class="card"><span class="num-badge">{i + 1}</span><h3>{p[lang]}</h3>{p.d && <p class="muted">{p.d[lang]}</p>}</div>)}
+  </div>
+  <div class="wrap" style="margin-top:28px"><p class="muted">{uk ? 'Як проєкти пов’язані між собою, описано в документі ' : 'How the projects fit together is described in '}<a href={uk ? '/dokumenty/systema/' : '/dokumenty/systema/'}>{uk ? '«Система УН»' : '“The Ukrainian Nation System” (in Ukrainian)'}</a>.</p></div>
+  </section>
+  <JoinCta lang={lang} />
+</Base>

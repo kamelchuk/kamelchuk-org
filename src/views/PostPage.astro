@@ -1,0 +1,23 @@
+---
+import Base from '../layouts/Base.astro';
+import { render } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+import type { Lang } from '../data/site';
+import { pillars } from '../data/site';
+import { t, href, fmtDate } from '../i18n';
+interface Props { lang: Lang; entry: CollectionEntry<'news'>; alt: string }
+const { lang, entry, alt } = Astro.props;
+const { Content } = await render(entry);
+const p = pillars.find((x) => x.id === entry.data.pillar);
+---
+<Base lang={lang} title={entry.data.title} description={entry.data.excerpt} alt={alt}>
+  <section class="page-head"><div class="wrap prose">
+    <div class="eyebrow">{p ? p[lang].t : t(lang).news} · {fmtDate(entry.data.date, lang)}</div>
+    <h1>{entry.data.title}</h1>
+  </div></section>
+  <section class="section"><div class="wrap prose">
+    {entry.data.image && <img src={entry.data.image} alt="" style="border-radius:14px;margin-bottom:24px" />}
+    <Content />
+    <p><a href={href('news', lang)}>← {t(lang).allNews}</a></p>
+  </div></section>
+</Base>

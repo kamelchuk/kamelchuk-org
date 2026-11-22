@@ -1,0 +1,21 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import JoinCta from '../components/JoinCta.astro';
+import type { Lang } from '../data/site';
+import { orgs } from '../data/site';
+import { t, other } from '../i18n';
+const { lang } = Astro.props as { lang: Lang };
+const s = t(lang); const uk = lang === 'uk';
+---
+<Base lang={lang} title={s.orgs} alt={other('orgs', lang)}>
+  <PageHead eyebrow={s.orgs} title={uk ? 'Організації екосистеми' : 'Organisations in our network'} lead={uk ? 'Партія, фонди, центри та освітні проєкти, які працюють разом з командою Юрія Камельчука.' : 'The party, foundations, centres and education projects working with Yurii Kamelchuk’s team.'} />
+  <section class="section"><div class="wrap grid g3">
+    {orgs.map((o) => <a class="card org" href={o.url} target="_blank" rel="noopener"><h3 style="margin-top:0">{o[lang]}</h3><p class="muted">{o.d[lang]}</p><span class="url">{o.url.replace('https://', '')} ↗</span></a>)}
+  </div></section>
+  <JoinCta lang={lang} />
+</Base>
+<style>
+  .org { display: flex; flex-direction: column; gap: 8px; }
+  .url { margin-top: auto; font-weight: 600; font-size: .9rem; color: var(--accent-ink); }
+</style>

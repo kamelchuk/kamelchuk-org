@@ -1,0 +1,39 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import JoinForm from '../components/JoinForm.astro';
+import type { Lang } from '../data/site';
+import { contacts } from '../data/site';
+import { t, href, other } from '../i18n';
+const { lang } = Astro.props as { lang: Lang };
+const s = t(lang); const uk = lang === 'uk';
+const steps = uk
+  ? ['Ви заповнюєте заявку', 'Отримуєте лист із документами команди', 'Отримуєте запрошення до чату команди', 'Координатор телефонує і разом з вами обирає роль']
+  : ['You fill in the application', 'You receive an email with the team documents', 'You get an invitation to the team chat', 'A coordinator calls you and helps you choose a role'];
+---
+<Base lang={lang} title={s.join} alt={other('join', lang)}>
+  <PageHead eyebrow={s.join} title={uk ? 'Долучитися до команди' : 'Join the team'} lead={uk ? 'Для виборів, проєктів і роботи у своїй громаді. Заповнення займає дві хвилини.' : 'For elections, projects and work in your community. It takes two minutes.'} />
+  <section class="section"><div class="wrap join">
+    <div class="card"><JoinForm lang={lang} /></div>
+    <aside>
+      <h3 style="margin-top:0">{uk ? 'Що буде далі' : 'What happens next'}</h3>
+      <ol class="steps">{steps.map((x) => <li>{x}</li>)}</ol>
+      <div class="card side">
+        <strong>{uk ? 'Ви за кордоном?' : 'Living abroad?'}</strong>
+        <p class="muted">{uk ? 'Оберіть «За кордоном» в полі «Область» і вкажіть країну та місто. Для українців за кордоном у нас окремий проєкт.' : 'Choose “За кордоном” (abroad) in the Region field and enter your country and city. We run a dedicated project for Ukrainians abroad.'}</p>
+      </div>
+      <div class="card side">
+        <strong>{uk ? 'Членство в партії' : 'Party membership'}</strong>
+        <p class="muted">{uk ? 'Ця заявка — до команди Юрія Камельчука. Вступити до партії «Українська Нація» можна на ' : 'This application is for Yurii Kamelchuk’s team. To join the Ukrainian Nation party, go to '}<a href={contacts.partySite} target="_blank" rel="noopener">uanation.org</a>.</p>
+      </div>
+      <p class="muted">{uk ? 'Питання: ' : 'Questions: '}<a href={`mailto:${contacts.email}`}>{contacts.email}</a></p>
+      <p class="muted"><a href={href('docs', lang)}>{s.docs} →</a></p>
+    </aside>
+  </div></section>
+</Base>
+<style>
+  .join { display: grid; grid-template-columns: 1.3fr .7fr; gap: 40px; align-items: start; }
+  .steps { padding-left: 1.2em; margin: 0 0 24px; } .steps li { margin-bottom: 8px; }
+  .side { margin-bottom: 16px; } .side p { margin-top: 6px; }
+  @media (max-width: 900px) { .join { grid-template-columns: 1fr; } }
+</style>

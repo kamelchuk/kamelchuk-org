@@ -1,0 +1,70 @@
+---
+// Форма «Долучитися» (бриф, розділ 4). Надсилає на /api/join (functions/api/join.ts).
+import type { Lang } from '../data/site';
+import { regions, statuses, pillars, directions, contacts } from '../data/site';
+import { href } from '../i18n';
+const { lang } = Astro.props as { lang: Lang };
+const uk = lang === 'uk';
+const L = uk
+  ? { pib: 'Прізвище, ім’я, по батькові', phone: 'Телефон', email: 'Email', tg: 'Telegram (необов’язково)', region: 'Область', city: 'Населений пункт', age: 'Вік', status: 'Ким хочу бути в команді', pillar: 'Напрям, який мені найближчий', dirs: 'Проєкти, у яких хочу брати участь', help: 'Чим можу допомогти', helpPh: 'Досвід, навички, час, ідеї…', choose: 'Оберіть…', docs: 'Я ознайомився(-лася) з', docsLink: 'документами команди', consent: 'Я даю згоду на обробку моїх персональних даних відповідно до Закону України «Про захист персональних даних» і', policy: 'Політики приватності', send: 'Надіслати заявку', ok: 'Дякуємо! Заявку прийнято. Ваш номер:', okNote: 'Ми надіслали лист із документами. Координатор зв’яжеться з вами найближчим часом і запросить до чату команди.', err: `Не вдалося надіслати. Спробуйте ще раз або напишіть на ${contacts.email}.`, sending: 'Надсилаємо…' }
+  : { pib: 'Full name', phone: 'Phone', email: 'Email', tg: 'Telegram (optional)', region: 'Region', city: 'City / town', age: 'Age', status: 'My role in the team', pillar: 'The area closest to me', dirs: 'Projects I want to join', help: 'How I can help', helpPh: 'Experience, skills, time, ideas…', choose: 'Choose…', docs: 'I have read the', docsLink: 'team documents', consent: 'I consent to the processing of my personal data under the Law of Ukraine "On Personal Data Protection" and the', policy: 'Privacy Policy', send: 'Send application', ok: 'Thank you! Your application has been received. Your number:', okNote: 'We have emailed you the documents. A coordinator will contact you soon and invite you to the team chat.', err: `Could not send. Please try again or write to ${contacts.email}.`, sending: 'Sending…' };
+---
+<form class="join" data-ok={L.ok} data-oknote={L.okNote} data-err={L.err} data-sending={L.sending}>
+  <div class="field"><label>{L.pib} *</label><input name="name" required autocomplete="name" /></div>
+  <div class="two">
+    <div class="field"><label>{L.phone} *</label><input name="phone" type="tel" required autocomplete="tel" placeholder="+380" /></div>
+    <div class="field"><label>{L.email} *</label><input name="email" type="email" required autocomplete="email" /></div>
+  </div>
+  <div class="two">
+    <div class="field"><label>{L.tg}</label><input name="telegram" placeholder="@username" /></div>
+    <div class="field"><label>{L.age} *</label><input name="age" type="number" min="14" max="110" required inputmode="numeric" /></div>
+  </div>
+  <div class="two">
+    <div class="field"><label>{L.region} *</label><select name="region" required><option value="">{L.choose}</option>{regions.map((r) => <option>{r}</option>)}</select></div>
+    <div class="field"><label>{L.city} *</label><input name="city" required /></div>
+  </div>
+  <div class="field"><label>{L.status} *</label>
+    <div class="chips">{statuses.map((s, i) => <label class="chip"><input type="radio" name="status" value={s.uk.t} required checked={i === 0} />{s[lang].t}</label>)}</div>
+  </div>
+  <div class="field"><label>{L.pillar} *</label><select name="pillar" required><option value="">{L.choose}</option>{pillars.map((p) => <option value={p.uk.t}>{p[lang].t}</option>)}</select></div>
+  <div class="field"><label>{L.dirs}</label>
+    <div class="chips">{directions.map((d) => <label class="chip"><input type="checkbox" name="directions" value={d.uk} />{d[lang]}</label>)}</div>
+  </div>
+  <div class="field"><label>{L.help}</label><textarea name="help" rows="4" placeholder={L.helpPh}></textarea></div>
+  <input type="hidden" name="lang" value={lang} />
+  <div class="field"><label class="check"><input type="checkbox" name="docs" required /> <span>{L.docs} <a href={href('docs', lang)} target="_blank">{L.docsLink}</a>.</span></label></div>
+  <div class="field"><label class="check"><input type="checkbox" name="consent" required /> <span>{L.consent} <a href={href('privacy', lang)} target="_blank">{L.policy}</a>.</span></label></div>
+  <button class="btn btn-primary" type="submit">{L.send}</button>
+  <div class="result" hidden></div>
+</form>
+
+<script>
+  document.querySelectorAll<HTMLFormElement>('form.join').forEach((f) => {
+    f.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = f.querySelector('button')!;
+      const out = f.querySelector<HTMLDivElement>('.result')!;
+      const label = btn.textContent;
+      btn.disabled = true; btn.textContent = f.dataset.sending!;
+      try {
+        const r = await fetch('/api/join', { method: 'POST', body: new FormData(f) });
+        const j = await r.json();
+        if (!r.ok || !j.number) throw new Error();
+        f.querySelectorAll('.field, button').forEach((el) => ((el as HTMLElement).hidden = true));
+        out.className = 'result ok';
+        out.innerHTML = `<p>${f.dataset.ok}</p><p class="num">${j.number}</p><p>${f.dataset.oknote}</p>`;
+      } catch {
+        out.className = 'result err';
+        out.textContent = f.dataset.err!;
+      }
+      out.hidden = false; btn.disabled = false; btn.textContent = label;
+    });
+  });
+</script>
+
+<style>
+  .result { margin-top: 16px; padding: 16px; border-radius: 10px; }
+  .result.ok { background: #dffcf8; }
+  .result.err { background: #ffecec; color: #8a1c1c; }
+  .result :global(.num) { font-family: var(--font-head); font-size: 1.8rem; font-weight: 700; margin: .2em 0; }
+</style>

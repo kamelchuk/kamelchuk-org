@@ -1,0 +1,33 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import JoinCta from '../components/JoinCta.astro';
+import { getEntry, render } from 'astro:content';
+import type { Lang } from '../data/site';
+import { t, href, other } from '../i18n';
+const { lang } = Astro.props as { lang: Lang };
+const s = t(lang); const uk = lang === 'uk';
+const e = (await getEntry('docs', 'uk/tsinnosti'))!;
+const { Content } = await render(e);
+const blocks = [
+  ['Strength', 'Patriotism, heroism, national unity, identity', 'We are a nation of free people who honour our heroes, protect our cultural heritage and stand united in our pursuit of independence.'],
+  ['Law', 'Justice, rule of law, democracy, transparency', 'Power belongs to the people. The law is above any office. Transparency and the certainty of punishment are the basis of our state.'],
+  ['Development', 'Responsibility, innovation, sustainable progress, the environment', 'We build the future for those who come after us. Growth, innovation and environmental security are an investment in a successful Ukraine.'],
+  ['The person', 'Freedom, dignity, social solidarity', 'Everyone has the right to a decent life, and the state must provide solidarity and support to those who need it.'],
+];
+---
+<Base lang={lang} title={s.values} alt={other('values', lang)}>
+  <PageHead eyebrow={s.values} title={uk ? 'Наші моральні орієнтири' : 'Our moral compass'} lead={uk ? 'Сила, Закон, Розвиток і Людина — чотири ціннісні блоки, на яких тримається команда.' : 'Strength, Law, Development and the Person: the four value blocks our team stands on.'} />
+  {uk
+    ? <section class="section"><div class="wrap prose values"><Content /></div></section>
+    : <section class="section"><div class="wrap grid g2">
+        {blocks.map(([a, b, c]) => <div class="card"><div class="eyebrow">{a}</div><h3>{b}</h3><p class="muted">{c}</p></div>)}
+      </div><div class="wrap" style="margin-top:24px"><p class="notice">The full text is in Ukrainian: <a href={href('values', 'uk')}>Ключові цінності</a>.</p></div></section>}
+  <JoinCta lang={lang} />
+</Base>
+<style>
+  .values :global(table) { width: 100%; border-collapse: collapse; margin: 1em 0 2em; font-size: .95rem; }
+  .values :global(th), .values :global(td) { text-align: left; vertical-align: top; padding: 12px; border-bottom: 1px solid var(--line); }
+  .values :global(th) { font-family: var(--font-head); background: var(--bg-soft); }
+  @media (max-width: 640px) { .values :global(table) { display: block; overflow-x: auto; } }
+</style>

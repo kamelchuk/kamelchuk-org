@@ -1,0 +1,13 @@
+---
+import V from '../../../views/PostPage.astro';
+import { getCollection } from 'astro:content';
+export async function getStaticPaths() {
+  const all = await getCollection('news', (e) => !e.data.draft);
+  return all.filter((e) => e.id.startsWith('en/')).map((entry) => {
+    const twin = all.find((x) => x.data.key === entry.data.key && !x.id.startsWith('en/'));
+    return { params: { slug: entry.id.split('/')[1] }, props: { entry, alt: twin ? '/novyny/' + twin.id.split('/')[1] + '/' : '/novyny/' } };
+  });
+}
+const { entry, alt } = Astro.props;
+---
+<V lang="en" entry={entry} alt={alt} />

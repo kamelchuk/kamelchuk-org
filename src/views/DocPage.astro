@@ -1,0 +1,27 @@
+---
+import Base from '../layouts/Base.astro';
+import JoinCta from '../components/JoinCta.astro';
+import { render } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+import { t, href } from '../i18n';
+interface Props { entry: CollectionEntry<'docs'> }
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+---
+<Base lang="uk" title={entry.data.title} description={entry.data.description} alt={href('docs', 'en')}>
+  <section class="page-head"><div class="wrap prose">
+    <div class="eyebrow">{t('uk').docs} · «Українська Нація»</div>
+    <h1>{entry.data.title}</h1>
+    <p style="color:rgba(255,255,255,.75);margin:.6em 0 0">{entry.data.description}</p>
+  </div></section>
+  <section class="section"><div class="wrap prose doc"><Content />
+    <p style="margin-top:2em"><a href={href('docs', 'uk')}>← Усі документи</a></p>
+  </div></section>
+  <JoinCta lang="uk" />
+</Base>
+<style>
+  .doc :global(table) { width: 100%; border-collapse: collapse; margin: 1em 0 2em; font-size: .95rem; }
+  .doc :global(th), .doc :global(td) { text-align: left; vertical-align: top; padding: 12px; border-bottom: 1px solid var(--line); }
+  .doc :global(th) { font-family: var(--font-head); background: var(--bg-soft); }
+  @media (max-width: 640px) { .doc :global(table) { display: block; overflow-x: auto; } }
+</style>

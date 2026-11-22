@@ -1,0 +1,53 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import HqMap from '../components/HqMap.astro';
+import JoinCta from '../components/JoinCta.astro';
+import type { Lang } from '../data/site';
+import { hqs, statuses, contacts } from '../data/site';
+import { t, href, other } from '../i18n';
+const { lang } = Astro.props as { lang: Lang };
+const s = t(lang); const uk = lang === 'uk';
+const rules = uk
+  ? ['Кожен член партії публічно складає і підписує Клятву.', 'Нульова толерантність до корупції: підозра означає призупинення членства до рішення суду.', 'Кандидатів висуваємо тільки через відкриті праймеріз.', 'Кандидати проходять фінансовий аудит і відкривають декларації до висування.', 'Регулярні живі зустрічі з людьми на їхній території, а не лише прийоми в кабінетах.']
+  : ['Every party member takes and signs the Oath in public.', 'Zero tolerance for corruption: a formal suspicion means suspended membership until a court decides.', 'Candidates are nominated only through open primaries.', 'Candidates pass a financial audit and publish their declarations before nomination.', 'Regular face-to-face meetings with people where they live, not only office hours.'];
+---
+<Base lang={lang} title={s.team} alt={other('team', lang)}>
+  <PageHead eyebrow={s.team} title={uk ? 'Нова політична команда' : 'A new political team'} lead={uk ? 'Партія, регіони, кандидати, правила відбору, кодекс. Ми будуємо команду з людей, які вже чогось досягли і готові служити Україні.' : 'The party, regions, candidates, selection rules, a code of conduct. We are building a team of people who have already achieved something and are ready to serve Ukraine.'} />
+  <section class="section"><div class="wrap">
+    <h2>{uk ? 'Ролі в команді' : 'Roles in the team'}</h2>
+    <div class="grid g5" style="margin-top:24px">
+      {statuses.map((x, i) => <div class="card"><span class="num-badge">{i + 1}</span><h3>{x[lang].t}</h3><p class="muted">{x[lang].d}</p></div>)}
+    </div>
+  </div></section>
+  <section class="section soft"><div class="wrap rules">
+    <div>
+      <h2>{uk ? 'Правила відбору' : 'Selection rules'}</h2>
+      <ul>{rules.map((r) => <li>{r}</li>)}</ul>
+      <p class="muted">{uk ? 'Повні правила — у документі ' : 'The full rules are in '}<a href="/dokumenty/rehlament/">{uk ? '«Регламент взаємодії»' : '“Rules of Interaction” (in Ukrainian)'}</a>. {uk ? 'Систему відбору до команди буде доповнено.' : 'The team selection system will be added.'}</p>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">{uk ? 'Членство в партії' : 'Party membership'}</h3>
+      <p class="muted">{uk ? 'На цьому сайті ви долучаєтеся до команди Юрія Камельчука. Вступ до партії «Українська Нація» оформлюється на сайті партії.' : 'On this site you join Yurii Kamelchuk’s team. Joining the Ukrainian Nation party is done on the party website.'}</p>
+      <div class="hero-btns"><a class="btn btn-primary" href={href('join', lang)}>{s.join}</a><a class="btn btn-outline" href={contacts.partySite} target="_blank" rel="noopener">uanation.org ↗</a></div>
+    </div>
+  </div></section>
+  <section class="section"><div class="wrap">
+    <h2>{uk ? 'Штаби' : 'HQs'}</h2>
+    <div class="hqs">
+      <ul class="hq-list">
+        {hqs.map((h) => <li class="card"><strong>{h.name[lang]}</strong><br /><span class="muted">{h.address[lang]}</span><br /><a href={`tel:${h.phone.replace(/\s/g, '')}`}>{h.phone}</a></li>)}
+        <li class="card"><strong>Email</strong><br /><a href={`mailto:${contacts.email}`}>{contacts.email}</a></li>
+      </ul>
+      <HqMap lang={lang} />
+    </div>
+  </div></section>
+  <JoinCta lang={lang} />
+</Base>
+<style>
+  .rules { display: grid; grid-template-columns: 1.2fr .8fr; gap: 40px; align-items: start; }
+  .rules li { margin-bottom: 8px; }
+  .hqs { display: grid; grid-template-columns: .7fr 1.3fr; gap: 24px; margin-top: 24px; align-items: start; }
+  .hq-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 14px; }
+  @media (max-width: 860px) { .rules, .hqs { grid-template-columns: 1fr; } }
+</style>

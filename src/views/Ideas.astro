@@ -1,0 +1,46 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import JoinCta from '../components/JoinCta.astro';
+import { getEntry, render } from 'astro:content';
+import type { Lang } from '../data/site';
+import { triad } from '../data/site';
+import { t, href, other } from '../i18n';
+const { lang } = Astro.props as { lang: Lang };
+const s = t(lang); const uk = lang === 'uk';
+const parts = uk ? await Promise.all(['misiia', 'velyka-tsil', 'ideolohiia', 'manifest'].map(async (id) => {
+  const e = (await getEntry('docs', `uk/${id}`))!; const { Content } = await render(e); return { e, Content };
+})) : [];
+const backbone = [
+  ['State sovereignty (Strength)', 'Ukraine is not an object of geopolitics but its full architect: a strong professional army, a national defence industry and a steady Euro-Atlantic course. Security comes first.'],
+  ['Rule of law and zero tolerance for corruption (Law)', 'One law for everyone, from the highest official to any citizen. Transparent, independent courts and e-government that minimise the human factor.'],
+  ['Economic nationalism and innovation (Development)', 'An economy that works for people’s wellbeing: support for national producers and a free market, small and medium business, innovation and de-oligarchisation.'],
+  ['Identity as the foundation of the nation', 'Culture, language and history make us unique. A Ukraine-centred space in media, education and the arts, and quality education and healthcare.'],
+  ['Responsibility to future generations', 'No more short-term politics. Every initiative, from green technology to strategic planning, rests on sustainable development.'],
+];
+---
+<Base lang={lang} title={s.ideas} alt={other('ideas', lang)}>
+  <PageHead eyebrow={uk ? 'Ідеологія «Української Нації»' : 'The Ukrainian Nation’s ideology'} title={uk ? 'Сила. Закон. Розвиток.' : 'Strength. Law. Development.'}
+    lead={uk ? 'Наша ідеологія — державоцентричний прагматизм. Ми об’єднуємо захист національних інтересів із сучасними механізмами розвитку.' : 'Our ideology is state-centred pragmatism. We combine defending national interests with modern tools for development.'} />
+  <section class="section soft"><div class="wrap grid g3">
+    {triad.map((x) => <div class="card"><h3 style="margin-top:0">{x[lang].t}</h3><p class="muted">{x[lang].d}</p></div>)}
+  </div></section>
+  {uk ? parts.map(({ e, Content }, i) => (
+    <section class={`section ${i % 2 ? 'soft' : ''}`}><div class="wrap prose">
+      <div class="eyebrow">{e.data.description}</div>
+      <h2 style="margin-top:0">{e.data.title}</h2>
+      <Content />
+    </div></section>
+  )) : (
+    <section class="section"><div class="wrap prose">
+      <h2>Mission</h2>
+      <p>To restore and heal a Ukraine our children will be proud of, by uniting the nation and building effective institutions. We are building a strong, fair and prosperous Ukrainian state where every citizen feels protected, has dignity and can fulfil their potential.</p>
+      <h2>The big goal</h2>
+      <p>To restore the state’s geopolitical and economic independence, restore Ukraine’s sovereignty and territorial integrity, and bring Ukraine into Europe’s top five within 25 years.</p>
+      <h2>The ideological backbone</h2>
+      {backbone.map(([h, p], i) => <><h3>{i + 1}. {h}</h3><p>{p}</p></>)}
+      <p class="notice">The full texts of the party documents are in Ukrainian. <a href={href('docs', 'uk')}>Read them here</a>. An English translation is being prepared.</p>
+    </div></section>
+  )}
+  <JoinCta lang={lang} />
+</Base>

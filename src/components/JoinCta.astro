@@ -1,0 +1,19 @@
+---
+import type { Lang } from '../data/site';
+import { href, t } from '../i18n';
+const { lang } = Astro.props as { lang: Lang };
+const uk = lang === 'uk';
+---
+<section class="section dark"><div class="wrap cta-in">
+  <div>
+    <div class="eyebrow">{t(lang).join}</div>
+    <h2>{uk ? 'Нова політична команда починається з вас' : 'A new political team starts with you'}</h2>
+    <p class="lead">{uk ? 'Залиште заявку. Координатор зв’яжеться з вами, надішле документи і запросить до чату команди.' : 'Send an application. A coordinator will contact you, send you the documents and invite you to the team chat.'}</p>
+  </div>
+  <div class="hero-btns"><a class="btn btn-primary" href={href('join', lang)}>{t(lang).join}</a><a class="btn btn-ghost" href={href('support', lang)}>{t(lang).support}</a></div>
+</div></section>
+<style>
+  .cta-in { display: grid; grid-template-columns: 1.4fr .6fr; gap: 32px; align-items: center; }
+  .cta-in .hero-btns { justify-content: flex-end; }
+  @media (max-width: 860px) { .cta-in { grid-template-columns: 1fr; } .cta-in .hero-btns { justify-content: flex-start; } }
+</style>
