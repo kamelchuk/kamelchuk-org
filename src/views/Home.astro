@@ -76,7 +76,7 @@ const facts = uk
       <h2>{s.appeal}</h2>
       <p>{s.officeText}</p>
       <ul class="offices">
-        {contacts.offices.map((o) => <li><strong>{o.name[lang]}</strong><br /><span class="muted">{o.phone || s.phoneSoon}</span></li>)}
+        {contacts.offices.map((o) => <li><strong>{o.name[lang]}</strong><br /><span class="muted">{o.address[lang]}</span><br /><a href={`tel:${o.phone.replace(/\s/g, '')}`}>{o.phone}</a></li>)}
         <li><strong>Email</strong><br /><a href={`mailto:${contacts.email}`}>{contacts.email}</a></li>
         <li><strong>{s.hours}</strong><br /><span class="muted">{contacts.hours[lang]}</span></li>
       </ul>
