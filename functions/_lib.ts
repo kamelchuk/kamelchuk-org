@@ -2,7 +2,7 @@
 export interface Env {
   JOINS: KVNamespace;                 // KV: лічильник і заявки
   TELEGRAM_BOT_TOKEN?: string;        // бот для сповіщень
-  TELEGRAM_CHAT_IDS?: string;         // id чатів через кому (Юлія Бондар, Олег)
+  TELEGRAM_CHAT_IDS?: string;         // id чатів через кому (Юлія Бондар, Олег Рябикін)
   SHEETS_WEBHOOK_URL?: string;        // Google Apps Script, що дописує рядок у таблицю заявок
   RESEND_API_KEY?: string;            // відправка email
   MAIL_FROM?: string;                 // напр. "Команда Камельчука <komanda@kamelchuk.org.ua>"
