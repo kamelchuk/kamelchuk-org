@@ -26,3 +26,17 @@ export const myActions = {
     ],
   },
 };
+
+// ⚠ МАКЕТ: вигадана новина лише для демонстрації дизайну. Прибрати перед публікацією.
+export const mockNews = {
+  date: new Date('2026-11-21'),
+  pillar: 'team' as const,
+  title: {
+    uk: 'Партія «Українська Нація» відкриває відбір кандидатів у регіонах',
+    en: 'The Ukrainian Nation party opens candidate selection in the regions',
+  },
+  text: {
+    uk: 'Стартував відкритий відбір кандидатів від партії «Українська Нація» в усіх областях. Ми шукаємо людей із досвідом у громадах, бізнесі та війську, які готові працювати за чіткими правилами. Кожен кандидат проходить співбесіду, перевірку репутації та підписує кодекс партії. Перші регіональні команди представимо вже в грудні.',
+    en: 'Open selection of Ukrainian Nation party candidates has begun in every region. We are looking for people with experience in communities, business and the military who are ready to work by clear rules. Every candidate goes through an interview, a reputation check and signs the party code. The first regional teams will be presented in December.',
+  },
+};
