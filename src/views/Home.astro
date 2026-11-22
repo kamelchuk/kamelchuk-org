@@ -17,8 +17,8 @@ const youtube = socials.find((x) => x.name === 'YouTube')!.url;
 const tg = socials.find((x) => x.name === 'Telegram')!.url;
 
 const facts = uk
-  ? [['№124', 'виборчий округ'], ['ПАРЄ', 'член постійної делегації України'], ['Енергетика', 'член профільного комітету ВРУ'], ['~500', 'законопроєктів у співавторстві']]
-  : [['No. 124', 'electoral district'], ['PACE', 'member of Ukraine\'s delegation'], ['Energy', 'member of the Rada energy committee'], ['~500', 'bills co-authored']];
+  ? [['№124', 'виборчий округ'], ['ПАРЄ', 'член постійної делегації України'], ['Енергетика', 'член профільного комітету ВРУ'], ['~500', 'законопроєктів у співавторстві'], ['Лідер', 'партії «Українська Нація»']]
+  : [['No. 124', 'electoral district'], ['PACE', 'member of Ukraine\'s delegation'], ['Energy', 'member of the Rada energy committee'], ['~500', 'bills co-authored'], ['Leader', 'of the Ukrainian Nation party']];
 ---
 <Base lang={lang} alt={uk ? '/en/' : '/'}>
   <section class="hero" style={`--hero:url('${photos.hero}')`}>
@@ -27,8 +27,8 @@ const facts = uk
         <div class="eyebrow">{s.role}</div>
         <h1>{s.name}</h1>
         <p class="lead">{uk
-          ? 'Працюю для того, щоб кожне звернення отримало відповідь, а Україна — сильну енергетику, економіку та голос у світі.'
-          : 'I work so that every appeal gets an answer, and Ukraine gets strong energy, a strong economy and a voice in the world.'}</p>
+          ? 'Політик сильної держави. Пояснюю складну політику просто, маю парламентський і міжнародний досвід та збираю команду для оновлення України.'
+          : 'A politician for a strong state. I explain complex politics simply, bring parliamentary and international experience, and am building a team to renew Ukraine.'}</p>
         <div class="hero-btns">
           <a class="btn btn-primary" href={href('appeal', lang)}>{s.appeal}</a>
           <a class="btn btn-ghost" href={tg} target="_blank" rel="noopener">Telegram</a>
@@ -38,16 +38,16 @@ const facts = uk
     </div>
   </section>
 
-  <section class="facts"><div class="wrap grid g4">
+  <section class="facts"><div class="wrap grid g5">
     {facts.map(([a, b]) => <div class="fact"><strong>{a}</strong><span>{b}</span></div>)}
   </div></section>
 
   <section class="section"><div class="wrap">
     <div class="eyebrow">{s.positions}</div>
     <h2>{s.topicsTitle}</h2>
-    <div class="grid g4" style="margin-top:28px">
+    <div class="grid g5" style="margin-top:28px">
       {topics.map((x) => (
-        <a class="card topic" href={href('positions', lang)}>
+        <a class="card topic" href={`${href('positions', lang)}#${x.id}`}>
           <span class="ico">{x.icon}</span><h3>{x[lang].t}</h3><p class="muted">{x[lang].d}</p>
         </a>
       ))}
@@ -58,7 +58,7 @@ const facts = uk
     <div class="row-head"><div><div class="eyebrow">{s.news}</div><h2>{s.newsTitle}</h2></div>
       <a class="btn btn-outline" href={href('news', lang)}>{s.allNews}</a></div>
     <div class="grid g3">
-      {news.map((n) => <PostCard lang={lang} href={`${href('news', lang)}${n.id.split('/')[1]}/`} title={n.data.title} date={n.data.date} image={n.data.image} tag={n.data.tag} excerpt={n.data.excerpt} />)}
+      {news.map((n) => <PostCard lang={lang} href={`${href('news', lang)}${n.id.split('/')[1]}/`} title={n.data.title} date={n.data.date} image={n.data.image} tag={n.data.tag} pillar={n.data.pillar} excerpt={n.data.excerpt} />)}
     </div>
   </div></section>
 

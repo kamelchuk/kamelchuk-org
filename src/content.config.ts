@@ -5,6 +5,8 @@ const post = z.object({
   title: z.string(),
   date: z.coerce.date(),
   tag: z.string().optional(),
+  // Один із 5 стовпів: state | energy | europe | fair | team
+  pillar: z.enum(['state', 'energy', 'europe', 'fair', 'team']).optional(),
   image: z.string().optional(),
   excerpt: z.string(),
   // Ключ, що пов'язує українську та англійську версії однієї публікації

@@ -36,6 +36,7 @@ h2 { font-size: clamp(1.6rem, 3vw, 2.2rem); }
 .g2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
 .g3 { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
 .g4 { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+.g5 { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
 .card { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
 .muted { color: var(--muted); }
 .page-head { background: var(--ink-2); color: #fff; padding: 56px 0 48px; }

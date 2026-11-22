@@ -8,9 +8,9 @@ const { lang } = Astro.props as { lang: Lang };
 const s = t(lang); const uk = lang === 'uk';
 ---
 <Base lang={lang} title={s.positions} alt={href('positions', uk ? 'en' : 'uk')}>
-  <PageHead eyebrow={s.positions} title={s.topicsTitle} lead={uk ? 'Чотири напрями, у яких я працюю як народний депутат і лідер партії.' : 'Four areas I work on as an MP and party leader.'} />
+  <PageHead eyebrow={s.positions} title={s.topicsTitle} lead={uk ? 'П\'ять напрямів, у яких я працюю як народний депутат і лідер партії «Українська Нація».' : 'Five areas I work on as an MP and leader of the Ukrainian Nation party.'} />
   <section class="section"><div class="wrap grid g2">
-    {topics.map((x) => <div class="card"><span style="font-size:2rem">{x.icon}</span><h2 style="font-size:1.5rem;margin-top:10px">{x[lang].t}</h2><p class="muted">{x[lang].d}</p>
+    {topics.map((x) => <div class="card" id={x.id}><span style="font-size:2rem">{x.icon}</span><h2 style="font-size:1.5rem;margin-top:10px">{x[lang].t}</h2><p class="muted">{x[lang].d}</p>
       <p class="placeholder" style="margin:16px 0 0">{uk ? 'Детальна позиція з цього напряму — на затвердженні' : 'Detailed position pending approval'}</p></div>)}
   </div></section>
 </Base>
