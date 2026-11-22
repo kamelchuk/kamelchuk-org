@@ -3,11 +3,14 @@
 // Фото дня: найновіше фото з Instagram (поки заглушка; потрібен доступ до Instagram API).
 // Мої дії: 3 речення з Журналу подій (Юрій затверджує). Зараз — ЧЕРНЕТКА-приклад.
 export const videoOfDay = {
-  id: 'o6IpIoEQai4',
-  title: { uk: 'Відносини між Україною та Польщею', en: 'Relations between Ukraine and Poland' },
+  id: '6HaWC2J1TPs',
+  // обкладинка — кадр з Юрієм із цього відео (вибрано вручну)
+  cover: 'https://i.ytimg.com/vi/6HaWC2J1TPs/maxres2.jpg',
+  title: { uk: 'Правковий тероризм: торгівля правками завжди буде. Ранок.LIVE', en: 'Amendment terrorism: the trade in amendments will always exist. Ranok.LIVE' },
 };
 export const photoOfDay = {
-  image: '', // URL найновішого фото з Instagram
+  // ТИМЧАСОВО: кадр із відео, поки немає посилання на фото з Instagram
+  image: 'https://i.ytimg.com/vi/6HaWC2J1TPs/maxres3.jpg',
   caption: { uk: 'Найновіше фото з Instagram', en: 'Latest photo from Instagram' },
 };
 export const myActions = {

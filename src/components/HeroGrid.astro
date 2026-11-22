@@ -56,7 +56,7 @@ const portrait = '/images/yurii-portrait.jpg';
       <div class="box">
         <div class="col-head"><span class="eyebrow">{uk ? 'Відео дня' : 'Video of the day'}</span><a href={yt} target="_blank" rel="noopener">YouTube →</a></div>
         <a class="video" href={`https://www.youtube.com/watch?v=${videoOfDay.id}`} target="_blank" rel="noopener">
-          <img src={`https://i.ytimg.com/vi/${videoOfDay.id}/hqdefault.jpg`} alt="" loading="lazy" onerror="this.remove()" />
+          <img src={videoOfDay.cover} alt="" loading="lazy" onerror="this.remove()" />
           <span class="play">▶</span>
         </a>
         <p class="cap">{videoOfDay.title[lang]}</p>
