@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import PostCard from '../components/PostCard.astro';
+import HeroGrid from '../components/HeroGrid.astro';
 import Subscribe from '../components/Subscribe.astro';
 import AppealForm from '../components/AppealForm.astro';
 import { getCollection } from 'astro:content';
@@ -21,22 +22,7 @@ const facts = uk
   : [['No. 124', 'electoral district'], ['PACE', 'member of Ukraine\'s delegation'], ['Energy', 'member of the Rada energy committee'], ['~500', 'bills co-authored'], ['Leader', 'of the Ukrainian Nation party']];
 ---
 <Base lang={lang} alt={uk ? '/en/' : '/'}>
-  <section class="hero" style={`--hero:url('${photos.hero}')`}>
-    <div class="wrap hero-in">
-      <div class="hero-text">
-        <div class="eyebrow">{s.role}</div>
-        <h1>{s.name}</h1>
-        <p class="lead">{uk
-          ? 'Політик сильної держави. Пояснюю складну політику просто, маю парламентський і міжнародний досвід та збираю команду для оновлення України.'
-          : 'A politician for a strong state. I explain complex politics simply, bring parliamentary and international experience, and am building a team to renew Ukraine.'}</p>
-        <div class="hero-btns">
-          <a class="btn btn-primary" href={href('appeal', lang)}>{s.appeal}</a>
-          <a class="btn btn-ghost" href={tg} target="_blank" rel="noopener">Telegram</a>
-        </div>
-      </div>
-      <img class="portrait" src={photos.portrait} alt={s.name} />
-    </div>
-  </section>
+  <HeroGrid lang={lang} />
 
   <section class="facts"><div class="wrap grid g5">
     {facts.map(([a, b]) => <div class="fact"><strong>{a}</strong><span>{b}</span></div>)}
