@@ -11,8 +11,7 @@ const videos = (await getCollection('media', (e) => e.id.startsWith(lang + '/') 
 const yt = socials.find((x) => x.name === 'YouTube')!.url;
 // Фото для ЗМІ: оригінали у високій якості. Замінити на затверджені фото.
 const press = [
-  { src: photos.portrait, title: uk ? 'Портрет' : 'Portrait' },
-  { src: photos.hero, title: uk ? 'Публічний виступ' : 'Public appearance' },
+  { src: photos.portrait, full: photos.portraitFull, title: uk ? 'Портрет' : 'Portrait' },
 ];
 ---
 <Base lang={lang} title={s.media} alt={href('media', uk ? 'en' : 'uk')}>
@@ -33,7 +32,7 @@ const press = [
     <div class="grid g3" style="margin-top:24px">{press.map((p) => (
       <figure class="card" style="padding:0;overflow:hidden;margin:0">
         <img src={p.src} alt={p.title} loading="lazy" style="aspect-ratio:4/5;object-fit:cover;width:100%" />
-        <figcaption style="padding:14px 18px;display:flex;justify-content:space-between;align-items:center"><strong>{p.title}</strong><a class="tag" href={p.src} download target="_blank">{uk ? 'Завантажити' : 'Download'}</a></figcaption>
+        <figcaption style="padding:14px 18px;display:flex;justify-content:space-between;align-items:center"><strong>{p.title}</strong><a class="tag" href={p.full} download target="_blank">{uk ? 'Завантажити' : 'Download'}</a></figcaption>
       </figure>))}</div>
   </div></section>
 </Base>
