@@ -1,12 +1,16 @@
-// Статичний сайт на Cloudflare (Workers Static Assets). Збірка: npm run build → dist/.
-// Форма звернень (functions/api) підключається окремо, коли будуть KV і секрети; див. README.
+// Сайт kamelchuk.org на Cloudflare Workers: статика з dist/ + API форми звернень (worker/index.ts).
+// Секрети TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_IDS і ADMIN_TOKEN задаються в Cloudflare: Worker → Settings → Variables and Secrets.
 {
   "name": "kamelchuk-org",
+  "main": "worker/index.ts",
   "compatibility_date": "2026-11-01",
-  // Збирає сайт перед деплоєм, навіть якщо в Cloudflare не вказано Build command
   "build": { "command": "npm run build" },
   "assets": {
     "directory": "./dist",
-    "not_found_handling": "404-page"
-  }
+    "binding": "ASSETS",
+    "not_found_handling": "404-page",
+    "run_worker_first": ["/api/*"]
+  },
+  "durable_objects": { "bindings": [{ "name": "APPEALS", "class_name": "AppealsStore" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["AppealsStore"] }]
 }
