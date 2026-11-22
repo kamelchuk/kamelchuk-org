@@ -18,7 +18,7 @@ npm run build    # статичний сайт у dist/
 - `src/i18n.ts` — адреси сторінок і переклади інтерфейсу.
 - `src/content/news|blog|media/{uk,en}/*.md` — публікації. Українська та англійська версії однієї публікації мають однаковий `key`.
 - `src/views/*.astro` — сторінки (одна view на обидві мови), `src/pages/` — маршрути.
-- `functions/api/*` — Cloudflare Pages Functions для звернень.
+- `worker/index.ts` — Worker: статика + API звернень (Durable Object для номерів і статусів).
 
 ## Звернення
 
@@ -35,7 +35,7 @@ npm run build    # статичний сайт у dist/
 
 Хостинг: Cloudflare, команда збірки `npm run build`, папка `dist`, Node 22 (`.nvmrc`). `wrangler.jsonc` описує статичний сайт; деплой: `npx wrangler deploy`.
 
-Форма звернень потребує Cloudflare Pages Functions або Worker з KV `APPEALS` (`npx wrangler kv namespace create APPEALS`). Підключимо, коли будуть токени Telegram, таблиця і пошта.
+Форма звернень: секрети `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_IDS` (через кому), `ADMIN_TOKEN`, опційно `SHEETS_WEBHOOK_URL` задаються в Cloudflare → Worker → Settings → Variables and Secrets.
 
 ## Що ще потрібно
 
