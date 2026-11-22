@@ -5,12 +5,12 @@
 export const videoOfDay = {
   id: '6HaWC2J1TPs',
   // обкладинка — кадр з Юрієм із цього відео (вибрано вручну)
-  cover: 'https://i.ytimg.com/vi/6HaWC2J1TPs/maxres2.jpg',
+  cover: '/images/video-of-day.jpg',
   title: { uk: 'Правковий тероризм: торгівля правками завжди буде. Ранок.LIVE', en: 'Amendment terrorism: the trade in amendments will always exist. Ranok.LIVE' },
 };
 export const photoOfDay = {
   // фото з Instagram (вибрав Юрій): https://www.instagram.com/p/CdGM9B3NlM9/
-  image: 'https://www.instagram.com/p/CdGM9B3NlM9/media/?size=l',
+  image: '/images/photo-of-day.jpg',
   link: 'https://www.instagram.com/p/CdGM9B3NlM9/',
   caption: { uk: 'Найновіше фото з Instagram', en: 'Latest photo from Instagram' },
 };
