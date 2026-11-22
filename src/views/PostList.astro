@@ -11,7 +11,7 @@ const { lang, kind } = Astro.props;
 const s = t(lang); const uk = lang === 'uk';
 const items = (await getCollection(kind, (e) => e.id.startsWith(lang + '/') && !e.data.draft)).sort((a, b) => +b.data.date - +a.data.date);
 const lead = kind === 'news'
-  ? (uk ? 'Події з публічного життя: парламент, ПАРЄ, енергетика, оборона, округ.' : 'Public activity: parliament, PACE, energy, defence and the district.')
+  ? (uk ? 'Новини за п\'ятьма напрямами: сильна держава, енергетика, Європа, справедливість для військових і громадян, нова команда.' : 'News across five areas: a strong state, energy, Europe, fairness for soldiers and citizens, a new team.')
   : (uk ? 'Позиції та аналітика Юрія Камельчука.' : 'Positions and analysis by Yurii Kamelchuk.');
 ---
 <Base lang={lang} title={s[kind]} alt={href(kind, uk ? 'en' : 'uk')}>
@@ -38,5 +38,6 @@ const lead = kind === 'news'
   .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
   .chip { font: 600 .85rem var(--font-head); border: 1px solid var(--line); background: #fff; color: var(--ink-2); border-radius: 999px; padding: .5em 1em; cursor: pointer; }
   .chip.on, .chip:hover { background: var(--accent); border-color: var(--accent); color: #062b28; }
+  .posts { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
   .posts :global(article[hidden]) { display: none; }
 </style>
