@@ -26,7 +26,7 @@ const L = uk
       </div>
       <div class="card" style="margin-top:20px">
         <h3>{uk ? 'Контакти приймалень' : 'Office contacts'}</h3>
-        {contacts.offices.map((o) => <p><strong>{o.name[lang]}</strong><br />{o.person[lang]} · <span class="muted">{o.phone || s.phoneSoon}</span></p>)}
+        {contacts.offices.map((o) => <p><strong>{o.name[lang]}</strong><br /><span class="muted">{o.address[lang]}</span><br />{o.person[lang]} · <a href={`tel:${o.phone.replace(/\s/g, '')}`}>{o.phone}</a></p>)}
         <p><strong>Email</strong><br /><a href={`mailto:${contacts.email}`}>{contacts.email}</a></p>
         <p><strong>{s.hours}</strong><br />{contacts.hours[lang]}</p>
       </div>

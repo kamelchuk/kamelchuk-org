@@ -13,9 +13,10 @@ const o = contacts.offices[0];
   <section class="section"><div class="wrap grid g2">
     <div class="card"><h3>{o.name[lang]}</h3>
       <p>{uk ? 'Відповідальний за прийом звернень' : 'Responsible for appeals'}: <strong>{o.person[lang]}</strong></p>
-      <p>{uk ? 'Телефон' : 'Phone'}: <span class="muted">{o.phone || s.phoneSoon}</span></p>
+      <p>{uk ? 'Адреса' : 'Address'}: {o.address[lang]}</p>
+      <p>{uk ? 'Телефон' : 'Phone'}: <a href={`tel:${o.phone.replace(/\s/g, '')}`}>{o.phone}</a></p>
       <p>{s.hours}: {contacts.hours[lang]}</p>
       <a class="btn btn-primary" href={href('appeal', lang)}>{s.appeal}</a></div>
-    <div class="placeholder">{uk ? 'Адреса приймальні, карта і новини округу — наповнюються' : 'Office address, map and district news — coming soon'}</div>
+    <div class="placeholder">{uk ? 'Карта і новини округу — наповнюються' : 'Map and district news — coming soon'}</div>
   </div></section>
 </Base>

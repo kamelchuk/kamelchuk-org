@@ -16,12 +16,14 @@ export const contacts = {
     {
       name: { uk: 'Приймальня округу №124', en: 'District No. 124 office' },
       person: { uk: 'Валерій Давидюк', en: 'Valerii Davydiuk' },
-      phone: '', // TODO: уточнити робочий номер у Валерія Давидюка
+      phone: '+38 068 128 30 38',
+      address: { uk: 'м. Шептицький, вул. Стуса, 20', en: '20 Stusa St, Sheptytskyi' },
     },
     {
       name: { uk: 'Київська приймальня', en: 'Kyiv office' },
       person: { uk: 'Юлія Бондар', en: 'Yuliia Bondar' },
-      phone: '', // TODO: уточнити робочий номер у Юлії Бондар
+      phone: '+38 097 316 08 08',
+      address: { uk: 'м. Київ, вул. Грушевського, 26/1', en: '26/1 Hrushevskoho St, Kyiv' },
     },
   ],
 };
