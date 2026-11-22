@@ -1,0 +1,84 @@
+// Єдине джерело даних сайту: контакти, організації, теми, соцмережі.
+export type Lang = 'uk' | 'en';
+
+// Фото поки що зі старого сайту (Weblium CDN). Замінити на власні файли в public/img
+// після отримання професійного портрета (див. бриф, розділ 8).
+const CDN = 'https://res2.weblium.site/res/69980c6e3f713a88dfcd471e';
+export const photos = {
+  portrait: `${CDN}/69a4bc3b390d65531eab3b26?nowebp`,
+  hero: `${CDN}/69a4c52ada31b75849241302?nowebp`,
+};
+
+export const contacts = {
+  email: 'zvernennia@kamelchuk.org',
+  hours: { uk: 'Пн–Пт, 9:00–18:00', en: 'Mon–Fri, 9:00–18:00' },
+  offices: [
+    {
+      name: { uk: 'Приймальня округу №124', en: 'District No. 124 office' },
+      person: { uk: 'Валерій Давидюк', en: 'Valerii Davydiuk' },
+      phone: '', // TODO: уточнити робочий номер у Валерія Давидюка
+    },
+    {
+      name: { uk: 'Київська приймальня', en: 'Kyiv office' },
+      person: { uk: 'Юлія Бондар', en: 'Yuliia Bondar' },
+      phone: '', // TODO: уточнити робочий номер у Юлії Бондар
+    },
+  ],
+};
+
+export const socials = [
+  { name: 'Telegram', url: 'https://t.me/kamelchukyuriy' },
+  { name: 'Facebook', url: 'https://facebook.com/yuriy.kamelchuk' },
+  { name: 'YouTube', url: 'https://www.youtube.com/@YuriyKamelchuk' },
+  { name: 'Instagram', url: 'https://instagram.com/kamelchuk.yuriy' },
+  { name: 'X', url: 'https://x.com/kamelchuk' },
+  { name: 'LinkedIn', url: 'https://linkedin.com/in/yuriykamelchuk' },
+  { name: 'TikTok', url: 'https://tiktok.com/@kamelchuk.yuriy' },
+];
+
+export const orgs = [
+  { url: 'https://uanation.org', uk: 'Партія «Українська Нація»', en: 'Ukrainian Nation party' },
+  { url: 'https://msc.org.ua', uk: 'Центр Підтримки Військових', en: 'Military Support Center' },
+  { url: 'https://spilnota.net', uk: 'Українська Бізнес Спільнота', en: 'Ukrainian Business Community' },
+  { url: 'https://cu.org.ua', uk: 'Кардинал Університет', en: 'Cardinal University' },
+  { url: 'https://kff.org.ua', uk: 'Фонд Родини Камельчуків', en: 'Kamelchuk Family Foundation' },
+  { url: 'https://unpf.fund', uk: 'Фонд підтримки української нації', en: 'Ukrainian Nation Support Fund' },
+  { url: 'https://hrc.org.ua', uk: 'Центр Відновлення (HRC)', en: 'Recovery Center (HRC)' },
+  { url: 'https://isgua.org.ua', uk: 'Інститут Стратегії Громади', en: 'Community Strategy Institute' },
+  { url: 'https://politix.org.ua', uk: 'Politix', en: 'Politix' },
+];
+
+export const topics = [
+  {
+    icon: '⚡',
+    uk: { t: 'Енергетика', d: 'Енергетична незалежність, системи зберігання енергії, відновлювана генерація, зарядна інфраструктура.' },
+    en: { t: 'Energy', d: 'Energy independence, energy storage, renewable generation and EV charging infrastructure.' },
+  },
+  {
+    icon: '📈',
+    uk: { t: 'Економіка', d: 'Підтримка бізнесу, інвестиції у відбудову, прозорі правила для підприємців.' },
+    en: { t: 'Economy', d: 'Support for business, investment in reconstruction, clear rules for entrepreneurs.' },
+  },
+  {
+    icon: '🌍',
+    uk: { t: 'Міжнародна політика', d: 'Робота в делегації до ПАРЄ, Ініціатива Трьох Морів, міжпарламентські групи дружби.' },
+    en: { t: 'International affairs', d: 'PACE delegation, the Three Seas Initiative and parliamentary friendship groups.' },
+  },
+  {
+    icon: '🛡',
+    uk: { t: 'Оборона', d: 'Підтримка військових і ветеранів, захист від атак дронів, відновлення ветеранів.' },
+    en: { t: 'Defence', d: 'Support for soldiers and veterans, protection against drone attacks, veteran recovery.' },
+  },
+];
+
+export const appealTopics = {
+  uk: ['Соціальний захист', 'Енергетика і комунальні послуги', 'Підтримка військових і ветеранів', 'Бізнес і економіка', 'Правова допомога', 'Інфраструктура громади', 'Інше'],
+  en: ['Social protection', 'Energy and utilities', 'Support for soldiers and veterans', 'Business and economy', 'Legal assistance', 'Community infrastructure', 'Other'],
+};
+
+export const regions = [
+  'Вінницька', 'Волинська', 'Дніпропетровська', 'Донецька', 'Житомирська', 'Закарпатська', 'Запорізька',
+  'Івано-Франківська', 'Київська', 'м. Київ', 'Кіровоградська', 'Луганська', 'Львівська', 'Миколаївська',
+  'Одеська', 'Полтавська', 'Рівненська', 'Сумська', 'Тернопільська', 'Харківська', 'Херсонська',
+  'Хмельницька', 'Черкаська', 'Чернівецька', 'Чернігівська', 'АР Крим', 'За кордоном',
+];

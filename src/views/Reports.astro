@@ -1,0 +1,17 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import type { Lang } from '../data/site';
+import { t, href } from '../i18n';
+const { lang } = Astro.props as { lang: Lang };
+const s = t(lang); const uk = lang === 'uk';
+const blocks = uk
+  ? [['Законопроєкти', 'Авторські та співавторські законопроєкти зі статусом розгляду.', 'Автоматично з сайту Верховної Ради'], ['Голосування', 'Як я голосував за ключові рішення парламенту.', 'Автоматично з сайту Верховної Ради'], ['Депутатські запити', 'Запити й звернення до органів влади в інтересах громадян.', 'Готує команда'], ['Річний звіт', 'Підсумки року: закони, звернення, допомога, робота в окрузі.', 'Готує команда']]
+  : [['Bills', 'Bills I authored or co-authored, with their status.', 'Automatically from the Verkhovna Rada website'], ['Votes', 'How I voted on key decisions of parliament.', 'Automatically from the Verkhovna Rada website'], ['Inquiries', 'Official inquiries to authorities on behalf of citizens.', 'Prepared by the team'], ['Annual report', 'The year in review: laws, appeals, assistance and district work.', 'Prepared by the team']];
+---
+<Base lang={lang} title={s.reports} alt={href('reports', uk ? 'en' : 'uk')}>
+  <PageHead eyebrow={s.reports} title={uk ? 'Звіти народного депутата' : 'MP reports'} lead={uk ? 'Прозоро про роботу в парламенті.' : 'Transparent reporting on my work in parliament.'} />
+  <section class="section"><div class="wrap grid g2">
+    {blocks.map(([a, b, c]) => <div class="card"><h3>{a}</h3><p class="muted">{b}</p><span class="tag">{c}</span></div>)}
+  </div></section>
+</Base>

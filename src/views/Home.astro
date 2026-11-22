@@ -1,0 +1,120 @@
+---
+import Base from '../layouts/Base.astro';
+import PostCard from '../components/PostCard.astro';
+import Subscribe from '../components/Subscribe.astro';
+import AppealForm from '../components/AppealForm.astro';
+import { getCollection } from 'astro:content';
+import type { Lang } from '../data/site';
+import { photos, topics, orgs, contacts, socials } from '../data/site';
+import { t, href } from '../i18n';
+
+const { lang } = Astro.props as { lang: Lang };
+const s = t(lang);
+const uk = lang === 'uk';
+const news = (await getCollection('news', (e) => e.id.startsWith(lang + '/') && !e.data.draft))
+  .sort((a, b) => +b.data.date - +a.data.date).slice(0, 3);
+const youtube = socials.find((x) => x.name === 'YouTube')!.url;
+const tg = socials.find((x) => x.name === 'Telegram')!.url;
+
+const facts = uk
+  ? [['№124', 'виборчий округ'], ['ПАРЄ', 'член постійної делегації України'], ['Енергетика', 'член профільного комітету ВРУ'], ['~500', 'законопроєктів у співавторстві']]
+  : [['No. 124', 'electoral district'], ['PACE', 'member of Ukraine\'s delegation'], ['Energy', 'member of the Rada energy committee'], ['~500', 'bills co-authored']];
+---
+<Base lang={lang} alt={uk ? '/en/' : '/'}>
+  <section class="hero" style={`--hero:url('${photos.hero}')`}>
+    <div class="wrap hero-in">
+      <div class="hero-text">
+        <div class="eyebrow">{s.role}</div>
+        <h1>{s.name}</h1>
+        <p class="lead">{uk
+          ? 'Працюю для того, щоб кожне звернення отримало відповідь, а Україна — сильну енергетику, економіку та голос у світі.'
+          : 'I work so that every appeal gets an answer, and Ukraine gets strong energy, a strong economy and a voice in the world.'}</p>
+        <div class="hero-btns">
+          <a class="btn btn-primary" href={href('appeal', lang)}>{s.appeal}</a>
+          <a class="btn btn-ghost" href={tg} target="_blank" rel="noopener">Telegram</a>
+        </div>
+      </div>
+      <img class="portrait" src={photos.portrait} alt={s.name} />
+    </div>
+  </section>
+
+  <section class="facts"><div class="wrap grid g4">
+    {facts.map(([a, b]) => <div class="fact"><strong>{a}</strong><span>{b}</span></div>)}
+  </div></section>
+
+  <section class="section"><div class="wrap">
+    <div class="eyebrow">{s.positions}</div>
+    <h2>{s.topicsTitle}</h2>
+    <div class="grid g4" style="margin-top:28px">
+      {topics.map((x) => (
+        <a class="card topic" href={href('positions', lang)}>
+          <span class="ico">{x.icon}</span><h3>{x[lang].t}</h3><p class="muted">{x[lang].d}</p>
+        </a>
+      ))}
+    </div>
+  </div></section>
+
+  <section class="section soft"><div class="wrap">
+    <div class="row-head"><div><div class="eyebrow">{s.news}</div><h2>{s.newsTitle}</h2></div>
+      <a class="btn btn-outline" href={href('news', lang)}>{s.allNews}</a></div>
+    <div class="grid g3">
+      {news.map((n) => <PostCard lang={lang} href={`${href('news', lang)}${n.id.split('/')[1]}/`} title={n.data.title} date={n.data.date} image={n.data.image} tag={n.data.tag} excerpt={n.data.excerpt} />)}
+    </div>
+  </div></section>
+
+  <section class="section"><div class="wrap media-row">
+    <div><div class="eyebrow">{s.media}</div><h2>{s.mediaTitle}</h2>
+      <p class="muted">{uk ? 'Фрагменти ефірів, інтерв\'ю та виступів. Повні відео — на YouTube-каналі.' : 'Clips from broadcasts, interviews and speeches. Full videos are on the YouTube channel.'}</p>
+      <div class="hero-btns"><a class="btn btn-outline" href={href('media', lang)}>{s.media}</a>
+      <a class="btn btn-outline" href={youtube} target="_blank" rel="noopener">YouTube</a></div></div>
+    <div class="placeholder">{uk ? 'Тут з\'являтимуться відео з YouTube' : 'YouTube videos will appear here'}</div>
+  </div></section>
+
+  <section class="section soft" id="office"><div class="wrap office">
+    <div>
+      <div class="eyebrow">{s.officeTitle}</div>
+      <h2>{s.appeal}</h2>
+      <p>{s.officeText}</p>
+      <ul class="offices">
+        {contacts.offices.map((o) => <li><strong>{o.name[lang]}</strong><br /><span class="muted">{o.phone || s.phoneSoon}</span></li>)}
+        <li><strong>Email</strong><br /><a href={`mailto:${contacts.email}`}>{contacts.email}</a></li>
+        <li><strong>{s.hours}</strong><br /><span class="muted">{contacts.hours[lang]}</span></li>
+      </ul>
+    </div>
+    <div class="card"><AppealForm lang={lang} compact /></div>
+  </div></section>
+
+  <section class="section"><div class="wrap">
+    <div class="eyebrow">{s.orgsTitle}</div>
+    <h2>{uk ? 'Команди та організації, з якими я працюю' : 'Teams and organisations I work with'}</h2>
+    <div class="grid g3" style="margin-top:28px">
+      {orgs.map((o) => <a class="card org" href={o.url} target="_blank" rel="noopener"><strong>{o[lang]}</strong><span class="muted">{o.url.replace('https://', '')} ↗</span></a>)}
+    </div>
+  </div></section>
+
+  <Subscribe lang={lang} />
+</Base>
+
+<style>
+  .hero { position: relative; color: #fff; background: linear-gradient(100deg, rgba(27,28,33,.96) 35%, rgba(27,28,33,.55)), var(--hero) center/cover, #23252b; overflow: hidden; }
+  .hero-in { display: grid; grid-template-columns: 1.2fr .8fr; align-items: end; gap: 40px; min-height: 560px; padding-top: 56px; }
+  .hero-text { padding-bottom: 80px; }
+  .hero h1 { font-size: clamp(2.6rem, 6vw, 4.4rem); margin: .2em 0 .3em; }
+  .lead { font-size: 1.15rem; color: rgba(255,255,255,.8); max-width: 560px; }
+  .hero-btns { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
+  .portrait { width: 100%; max-height: 520px; object-fit: cover; object-position: top; border-radius: 20px 20px 0 0; }
+  @media (max-width: 860px) { .hero-in { grid-template-columns: 1fr; min-height: 0; } .hero-text { padding-bottom: 0; } .portrait { max-height: 360px; } }
+  .facts { background: var(--accent); color: #062b28; }
+  .fact { padding: 26px 0; display: flex; flex-direction: column; }
+  .fact strong { font-family: var(--font-head); font-size: 1.6rem; }
+  .fact span { font-size: .9rem; }
+  @media (max-width: 640px) { .facts .grid { grid-template-columns: 1fr 1fr; gap: 0 16px; } .fact { padding: 16px 0; } .fact strong { font-size: 1.3rem; } }
+  .topic { text-decoration: none; transition: .15s; } .topic:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .ico { font-size: 1.8rem; } .topic h3 { margin-top: 12px; font-size: 1.15rem; } .topic p { font-size: .92rem; margin: 0; }
+  .row-head { display: flex; justify-content: space-between; align-items: end; gap: 16px; flex-wrap: wrap; margin-bottom: 28px; }
+  .media-row { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
+  .office { display: grid; grid-template-columns: .9fr 1.1fr; gap: 40px; align-items: start; }
+  @media (max-width: 860px) { .media-row, .office { grid-template-columns: 1fr; } }
+  .offices { list-style: none; padding: 0; display: grid; gap: 14px; }
+  .org { text-decoration: none; display: flex; flex-direction: column; gap: 6px; } .org:hover { border-color: var(--accent); }
+</style>

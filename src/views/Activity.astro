@@ -1,0 +1,17 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import type { Lang } from '../data/site';
+import { t, href } from '../i18n';
+const { lang } = Astro.props as { lang: Lang };
+const s = t(lang); const uk = lang === 'uk';
+const items = uk
+  ? [['Верховна Рада', 'Робота в комітеті з питань енергетики, авторство законів про системи зберігання енергії та зарядну інфраструктуру.', 'reports'], ['ПАРЄ', 'Постійна делегація України до Парламентської асамблеї Ради Європи.', 'news'], ['Ініціатива Трьох Морів', 'Голова міжфракційного депутатського об\'єднання.', 'news'], ['Партія «Українська Нація»', 'Засновник і лідер партії.', 'party'], ['Округ №124', 'Робота з виборцями та громадами округу.', 'district'], ['Благодійність', 'Фонд Родини Камельчуків, Центр Відновлення Ветеранів, Центр Підтримки Військових.', 'about']]
+  : [['Verkhovna Rada', 'Energy Committee; author of the laws on energy storage and EV charging infrastructure.', 'reports'], ['PACE', 'Ukraine\'s permanent delegation to the Parliamentary Assembly of the Council of Europe.', 'news'], ['Three Seas Initiative', 'Chair of the cross-party parliamentary group.', 'news'], ['Ukrainian Nation party', 'Founder and leader.', 'party'], ['District No. 124', 'Work with voters and communities of the district.', 'district'], ['Philanthropy', 'Kamelchuk Family Foundation, Veterans Recovery Center, Military Support Center.', 'about']];
+---
+<Base lang={lang} title={s.activity} alt={href('activity', uk ? 'en' : 'uk')}>
+  <PageHead eyebrow={s.activity} title={uk ? 'Чим я займаюся' : 'What I do'} />
+  <section class="section"><div class="wrap grid g3">
+    {items.map(([a, b, k]) => <a class="card" style="text-decoration:none" href={href(k as any, lang)}><h3>{a}</h3><p class="muted">{b}</p></a>)}
+  </div></section>
+</Base>

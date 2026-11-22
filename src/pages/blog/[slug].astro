@@ -1,0 +1,16 @@
+---
+import V from '../../views/PostPage.astro';
+import { getCollection } from 'astro:content';
+import { href } from '../../i18n';
+export async function getStaticPaths() {
+  const all = await getCollection('blog');
+  return all.filter((e) => e.id.startsWith('uk/')).map((entry) => {
+    const other = all.find((o) => o.data.key === entry.data.key && !o.id.startsWith('uk/'));
+    const altLang = 'uk' === 'uk' ? 'en' : 'uk';
+    const altUrl = other ? href('blog', altLang) + other.id.split('/')[1] + '/' : href('blog', altLang);
+    return { params: { slug: entry.id.split('/')[1] }, props: { entry, altUrl } };
+  });
+}
+const { entry, altUrl } = Astro.props;
+---
+<V lang="uk" kind="blog" entry={entry} altUrl={altUrl} />

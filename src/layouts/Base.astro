@@ -1,0 +1,106 @@
+---
+import '../styles/global.css';
+import type { Lang } from '../data/site';
+import { contacts, socials } from '../data/site';
+import { t, href, nav } from '../i18n';
+
+interface Props { lang: Lang; title?: string; description?: string; alt: string }
+const { lang, title, description, alt } = Astro.props;
+const s = t(lang);
+const fullTitle = title ? `${title} — ${s.name}` : `${s.name} — ${s.role}`;
+const desc = description ?? s.role;
+const path = Astro.url.pathname;
+---
+<!doctype html>
+<html lang={lang === 'uk' ? 'uk' : 'en'}>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{fullTitle}</title>
+  <meta name="description" content={desc} />
+  <meta property="og:title" content={fullTitle} />
+  <meta property="og:description" content={desc} />
+  <link rel="alternate" hreflang={lang === 'uk' ? 'en' : 'uk'} href={alt} />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap bar">
+      <a class="logo" href={href('home', lang)}>
+        <strong>{s.name}</strong>
+        <span>{lang === 'uk' ? 'Народний депутат України' : 'Member of Parliament of Ukraine'}</span>
+      </a>
+      <nav class="nav" id="nav">
+        {nav.map((k) => (
+          <a href={href(k, lang)} class={path.startsWith(href(k, lang)) ? 'active' : ''}>{s[k]}</a>
+        ))}
+      </nav>
+      <div class="actions">
+        <a class="lang" href={alt} aria-label="Switch language">{s.langSwitch}</a>
+        <a class="btn btn-primary cta" href={href('appeal', lang)}>{s.appeal}</a>
+        <button class="burger" aria-label="Menu" onclick="document.getElementById('nav').classList.toggle('open')">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <main><slot /></main>
+
+  <footer class="site-footer">
+    <div class="wrap fgrid">
+      <div>
+        <strong class="fname">{s.name}</strong>
+        <p class="muted-l">{s.footerNote}</p>
+        <p><a href={`mailto:${contacts.email}`}>{contacts.email}</a></p>
+        <p class="muted-l">{s.hours}: {contacts.hours[lang]}</p>
+      </div>
+      <div>
+        <h4>{lang === 'uk' ? 'Розділи' : 'Sections'}</h4>
+        <ul>{nav.map((k) => <li><a href={href(k, lang)}>{s[k]}</a></li>)}</ul>
+      </div>
+      <div>
+        <h4>{lang === 'uk' ? 'Соцмережі' : 'Social media'}</h4>
+        <ul>{socials.map((x) => <li><a href={x.url} target="_blank" rel="noopener">{x.name}</a></li>)}</ul>
+      </div>
+    </div>
+    <div class="wrap fbottom">
+      <span>© {new Date().getFullYear()} {s.name}. {s.rights}.</span>
+      <a href={href('privacy', lang)}>{s.privacy}</a>
+    </div>
+  </footer>
+</body>
+</html>
+
+<style>
+  .site-header { position: sticky; top: 0; z-index: 50; background: rgba(35,37,43,.97); color: #fff; backdrop-filter: blur(6px); }
+  .bar { display: flex; align-items: center; gap: 24px; min-height: 72px; }
+  .logo { text-decoration: none; display: flex; flex-direction: column; line-height: 1.15; }
+  .logo strong { font-family: var(--font-head); font-size: 1.1rem; }
+  .logo span { font-size: .72rem; color: rgba(255,255,255,.6); }
+  .nav { display: flex; gap: 16px; margin-left: auto; white-space: nowrap; }
+  .nav a { text-decoration: none; font-size: .86rem; font-weight: 600; color: rgba(255,255,255,.65); }
+  .nav a:hover, .nav a.active { color: #fff; }
+  .actions { display: flex; align-items: center; gap: 12px; }
+  .lang { font-family: var(--font-head); font-weight: 700; font-size: .85rem; text-decoration: none; border: 1px solid rgba(255,255,255,.4); border-radius: 8px; padding: 4px 9px; }
+  .cta { padding: .6em 1.1em; font-size: .85rem; white-space: nowrap; }
+  .burger { display: none; background: none; border: 0; color: #fff; font-size: 1.5rem; cursor: pointer; }
+  @media (max-width: 1280px) {
+    .nav { display: none; position: absolute; top: 72px; left: 0; right: 0; background: #23252b; flex-direction: column; padding: 16px 20px 24px; }
+    .nav.open { display: flex; }
+    .burger { display: block; }
+    .actions { margin-left: auto; }
+  }
+  @media (max-width: 520px) { .cta { display: none; } }
+  .site-footer { background: #1b1c21; color: #fff; padding: 56px 0 24px; margin-top: 0; }
+  .fgrid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 32px; }
+  @media (max-width: 760px) { .fgrid { grid-template-columns: 1fr; } }
+  .fname { font-family: var(--font-head); font-size: 1.2rem; }
+  .site-footer h4 { font-size: .85rem; text-transform: uppercase; letter-spacing: .1em; color: var(--accent); }
+  .site-footer ul { list-style: none; padding: 0; margin: 0; }
+  .site-footer li { margin-bottom: 6px; }
+  .site-footer a { color: rgba(255,255,255,.8); text-decoration: none; }
+  .site-footer a:hover { color: #fff; }
+  .muted-l { color: rgba(255,255,255,.55); margin: .3em 0; }
+  .fbottom { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; border-top: 1px solid rgba(255,255,255,.1); margin-top: 40px; padding-top: 20px; font-size: .85rem; color: rgba(255,255,255,.5); }
+</style>

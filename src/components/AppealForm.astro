@@ -1,0 +1,62 @@
+---
+import type { Lang } from '../data/site';
+import { appealTopics, regions } from '../data/site';
+import { href } from '../i18n';
+interface Props { lang: Lang; compact?: boolean }
+const { lang, compact = false } = Astro.props;
+const uk = lang === 'uk';
+const L = uk
+  ? { pib: 'Прізвище, ім\'я, по батькові', phone: 'Телефон', email: 'Email', region: 'Область', city: 'Населений пункт', topic: 'Тема звернення', text: 'Текст звернення', files: 'Файли (необов\'язково, до 10 МБ)', choose: 'Оберіть…', consent: 'Я даю згоду на обробку моїх персональних даних відповідно до Закону України «Про захист персональних даних» і', policy: 'Політики приватності', send: 'Надіслати звернення', ok: 'Звернення прийнято. Ваш номер:', okNote: 'Ми надіслали підтвердження на ваш email. За цим номером можна перевірити статус звернення.', err: 'Не вдалося надіслати. Спробуйте ще раз або напишіть на zvernennia@kamelchuk.org.', sending: 'Надсилаємо…' }
+  : { pib: 'Full name', phone: 'Phone', email: 'Email', region: 'Region', city: 'City / town', topic: 'Topic', text: 'Your appeal', files: 'Files (optional, up to 10 MB)', choose: 'Choose…', consent: 'I consent to the processing of my personal data under the Law of Ukraine "On Personal Data Protection" and the', policy: 'Privacy Policy', send: 'Send appeal', ok: 'Your appeal has been received. Your number:', okNote: 'We have sent a confirmation to your email. Use this number to check the status of your appeal.', err: 'Could not send. Please try again or write to zvernennia@kamelchuk.org.', sending: 'Sending…' };
+---
+<form class="appeal" data-ok={L.ok} data-oknote={L.okNote} data-err={L.err} data-sending={L.sending} enctype="multipart/form-data">
+  <div class="field"><label>{L.pib} *</label><input name="name" required autocomplete="name" /></div>
+  <div class="two">
+    <div class="field"><label>{L.phone} *</label><input name="phone" type="tel" required autocomplete="tel" placeholder="+380" /></div>
+    <div class="field"><label>{L.email} *</label><input name="email" type="email" required autocomplete="email" /></div>
+  </div>
+  <div class="two">
+    <div class="field"><label>{L.region} *</label><select name="region" required><option value="">{L.choose}</option>{regions.map((r) => <option>{r}</option>)}</select></div>
+    <div class="field"><label>{L.city} *</label><input name="city" required /></div>
+  </div>
+  <div class="field"><label>{L.topic} *</label><select name="topic" required><option value="">{L.choose}</option>{appealTopics[lang].map((x) => <option>{x}</option>)}</select></div>
+  <div class="field"><label>{L.text} *</label><textarea name="text" rows={compact ? 4 : 7} required></textarea></div>
+  <div class="field"><label>{L.files}</label><input name="files" type="file" multiple accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" /></div>
+  <input type="hidden" name="lang" value={lang} />
+  <div class="field"><label class="check"><input type="checkbox" name="consent" required /> <span>{L.consent} <a href={href('privacy', lang)} target="_blank">{L.policy}</a>.</span></label></div>
+  <button class="btn btn-primary" type="submit">{L.send}</button>
+  <div class="result" hidden></div>
+</form>
+
+<script>
+  document.querySelectorAll<HTMLFormElement>('form.appeal').forEach((f) => {
+    f.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = f.querySelector('button')!;
+      const out = f.querySelector<HTMLDivElement>('.result')!;
+      const label = btn.textContent;
+      btn.disabled = true; btn.textContent = f.dataset.sending!;
+      try {
+        const r = await fetch('/api/appeal', { method: 'POST', body: new FormData(f) });
+        const j = await r.json();
+        if (!r.ok || !j.number) throw new Error();
+        f.querySelectorAll('.field, button').forEach((el) => ((el as HTMLElement).hidden = true));
+        out.className = 'result ok';
+        out.innerHTML = `<p>${f.dataset.ok}</p><p class="num">${j.number}</p><p>${f.dataset.oknote}</p>`;
+      } catch {
+        out.className = 'result err';
+        out.textContent = f.dataset.err!;
+      }
+      out.hidden = false; btn.disabled = false; btn.textContent = label;
+    });
+  });
+</script>
+
+<style>
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+  @media (max-width: 560px) { .two { grid-template-columns: 1fr; } }
+  .result { margin-top: 16px; padding: 16px; border-radius: 10px; }
+  .result.ok { background: #dffcf8; }
+  .result.err { background: #ffecec; color: #8a1c1c; }
+  .result :global(.num) { font-family: var(--font-head); font-size: 1.8rem; font-weight: 700; margin: .2em 0; }
+</style>

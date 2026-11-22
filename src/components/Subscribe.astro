@@ -1,0 +1,22 @@
+---
+import type { Lang } from '../data/site';
+import { socials } from '../data/site';
+import { t } from '../i18n';
+const { lang } = Astro.props as { lang: Lang };
+const s = t(lang);
+const tg = socials.find((x) => x.name === 'Telegram')!.url;
+---
+<section class="section dark" id="subscribe"><div class="wrap sub">
+  <div><div class="eyebrow">{s.subscribe}</div><h2>{s.subscribeTitle}</h2><p style="color:rgba(255,255,255,.75)">{s.subscribeText}</p></div>
+  <form class="sf" onsubmit="event.preventDefault();this.querySelector('button').textContent='✓';">
+    <input type="email" required placeholder={s.emailPh} aria-label={s.emailPh} />
+    <button class="btn btn-primary" type="submit">{s.subscribe}</button>
+    <a class="btn btn-ghost" href={tg} target="_blank" rel="noopener">{s.telegramChannel}</a>
+  </form>
+</div></section>
+<style>
+  .sub { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: center; }
+  .sf { display: flex; flex-wrap: wrap; gap: 12px; }
+  .sf input { flex: 1 1 220px; border: 0; }
+  @media (max-width: 760px) { .sub { grid-template-columns: 1fr; } }
+</style>

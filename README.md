@@ -33,7 +33,9 @@ npm run build    # статичний сайт у dist/
 `GET /api/status?n=S1-11-2026` повертає лише статус: `received` (прийнято), `in_progress` (в роботі), `answered` (надано відповідь).
 `POST /api/admin/status` з `Authorization: Bearer $ADMIN_TOKEN` і `{number, status}` змінює статус.
 
-KV: `npx wrangler kv namespace create APPEALS`, id вписати у `wrangler.toml`.
+Хостинг: Cloudflare, команда збірки `npm run build`, папка `dist`, Node 22 (`.nvmrc`). `wrangler.jsonc` описує статичний сайт; деплой: `npx wrangler deploy`.
+
+Форма звернень потребує Cloudflare Pages Functions або Worker з KV `APPEALS` (`npx wrangler kv namespace create APPEALS`). Підключимо, коли будуть токени Telegram, таблиця і пошта.
 
 ## Що ще потрібно
 
