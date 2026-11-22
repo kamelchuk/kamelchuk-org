@@ -2,7 +2,7 @@
 import { getCollection } from 'astro:content';
 import type { Lang } from '../data/site';
 import { photos, socials, topics } from '../data/site';
-import { videoOfDay, photoOfDay, myActions, mockNews } from '../data/today';
+import { videoOfDay, photoOfDay, myActions } from '../data/today';
 import { t, href, fmtDate } from '../i18n';
 interface Props { lang: Lang }
 const { lang } = Astro.props;
@@ -12,10 +12,9 @@ const ig = socials.find((x) => x.name === 'Instagram')!.url;
 const yt = socials.find((x) => x.name === 'YouTube')!.url;
 const plain = (md: string) => md.replace(/[#*_>\[\]()`]/g, '').replace(/\s+/g, ' ').trim();
 const news = (await getCollection('news', (e) => e.id.startsWith(lang + '/') && !e.data.draft))
-  .sort((a, b) => +b.data.date - +a.data.date).slice(0, 3)
+  .sort((a, b) => +b.data.date - +a.data.date).slice(0, 4)
   .map((n) => ({ href: `${href('news', lang)}${n.id.split('/')[1]}/`, title: n.data.title, date: n.data.date, pillar: n.data.pillar as string | undefined, text: plain(n.body || '') || n.data.excerpt }));
-// МАКЕТ: додаємо вигадану 4-ту новину для демонстрації (прибрати перед публікацією)
-news.unshift({ href: href('news', lang), title: mockNews.title[lang], date: mockNews.date, pillar: mockNews.pillar, text: mockNews.text[lang] });
+
 const pillar = (id?: string) => topics.find((x) => x.id === id)?.[lang].t;
 const portrait = '/images/yurii-portrait.jpg';
 ---
@@ -65,10 +64,10 @@ const portrait = '/images/yurii-portrait.jpg';
         <div class="col-head"><span class="eyebrow">{uk ? 'Фото дня' : 'Photo of the day'}</span><a href={ig} target="_blank" rel="noopener">Instagram →</a></div>
         <a class="pic" href={photoOfDay.link || ig} target="_blank" rel="noopener">{photoOfDay.image ? <img src={photoOfDay.image} alt="" loading="lazy" referrerpolicy="no-referrer" /> : <span>{photoOfDay.caption[lang]}</span>}</a>
       </div>
-      <div class="box">
+      {myActions.items[lang].length > 0 && <div class="box">
         <div class="col-head"><span class="eyebrow">{uk ? 'Мої дії' : 'What I did'}</span><span class="muted-s">{myActions.week[lang]}</span></div>
         <ul class="acts">{myActions.items[lang].map((x) => <li>{x}</li>)}</ul>
-      </div>
+      </div>}
     </div>
   </div>
 </section>
