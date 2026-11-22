@@ -1,0 +1,22 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import PostCard from '../components/PostCard.astro';
+import { getCollection } from 'astro:content';
+import type { Lang } from '../data/site';
+import { t, href } from '../i18n';
+interface Props { lang: Lang; kind: 'news' | 'blog' }
+const { lang, kind } = Astro.props;
+const s = t(lang); const uk = lang === 'uk';
+const items = (await getCollection(kind, (e) => e.id.startsWith(lang + '/') && !e.data.draft)).sort((a, b) => +b.data.date - +a.data.date);
+const lead = kind === 'news'
+  ? (uk ? 'Події з публічного життя: парламент, ПАРЄ, енергетика, оборона, округ.' : 'Public activity: parliament, PACE, energy, defence and the district.')
+  : (uk ? 'Позиції та аналітика Юрія Камельчука.' : 'Positions and analysis by Yurii Kamelchuk.');
+---
+<Base lang={lang} title={s[kind]} alt={href(kind, uk ? 'en' : 'uk')}>
+  <PageHead eyebrow={s[kind]} title={s[kind]} lead={lead} />
+  <section class="section soft"><div class="wrap">
+    {items.length ? <div class="grid g3">{items.map((n) => <PostCard lang={lang} href={`${href(kind, lang)}${n.id.split('/')[1]}/`} title={n.data.title} date={n.data.date} image={n.data.image} tag={n.data.tag} excerpt={n.data.excerpt} />)}</div>
+      : <div class="placeholder">{s.soon}</div>}
+  </div></section>
+</Base>

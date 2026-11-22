@@ -1,0 +1,24 @@
+---
+import type { Lang } from '../data/site';
+import { fmtDate, t } from '../i18n';
+interface Props { lang: Lang; href: string; title: string; date: Date; image?: string; tag?: string; excerpt: string }
+const { lang, href, title, date, image, tag, excerpt } = Astro.props;
+---
+<article class="pc">
+  {image && <a href={href} class="img"><img src={image} alt="" loading="lazy" /></a>}
+  <div class="body">
+    <div class="meta">{tag && <span class="tag">{tag}</span>}<time>{fmtDate(date, lang)}</time></div>
+    <h3><a href={href}>{title}</a></h3>
+    <p class="muted">{excerpt}</p>
+    <a class="more" href={href}>{t(lang).readMore} →</a>
+  </div>
+</article>
+<style>
+  .pc { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; display: flex; flex-direction: column; }
+  .img img { aspect-ratio: 16/10; object-fit: cover; width: 100%; }
+  .body { padding: 20px 22px 24px; display: flex; flex-direction: column; flex: 1; }
+  .meta { display: flex; gap: 10px; align-items: center; font-size: .82rem; color: var(--muted); margin-bottom: 10px; }
+  h3 { font-size: 1.08rem; } h3 a { text-decoration: none; } h3 a:hover { color: var(--accent-ink); }
+  p { font-size: .93rem; margin: 0 0 14px; }
+  .more { margin-top: auto; font-weight: 700; color: var(--accent-ink); text-decoration: none; font-size: .9rem; }
+</style>

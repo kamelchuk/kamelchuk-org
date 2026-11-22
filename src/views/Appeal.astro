@@ -1,0 +1,55 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import AppealForm from '../components/AppealForm.astro';
+import type { Lang } from '../data/site';
+import { contacts } from '../data/site';
+import { t, href } from '../i18n';
+const { lang } = Astro.props as { lang: Lang };
+const s = t(lang); const uk = lang === 'uk';
+const L = uk
+  ? { check: 'Перевірити статус звернення', ph: 'Номер, напр. S1-11-2026', btn: 'Перевірити', st: { received: 'Прийнято', in_progress: 'В роботі', answered: 'Надано відповідь' } as Record<string, string>, nf: 'Звернення з таким номером не знайдено.', err: 'Не вдалося перевірити. Спробуйте пізніше.' }
+  : { check: 'Check appeal status', ph: 'Number, e.g. S1-11-2026', btn: 'Check', st: { received: 'Received', in_progress: 'In progress', answered: 'Answered' } as Record<string, string>, nf: 'No appeal found with this number.', err: 'Could not check. Please try later.' };
+---
+<Base lang={lang} title={s.appeal} alt={href('appeal', uk ? 'en' : 'uk')}>
+  <PageHead eyebrow={s.officeTitle} title={s.appeal} lead={s.officeText} />
+  <section class="section soft"><div class="wrap ap">
+    <div class="card"><AppealForm lang={lang} /></div>
+    <aside>
+      <div class="card">
+        <h3>{L.check}</h3>
+        <form id="status" data-st={JSON.stringify(L.st)} data-nf={L.nf} data-err={L.err}>
+          <div class="field"><input name="n" required placeholder={L.ph} pattern="[Ss]\d+-\d{1,2}-\d{4}" /></div>
+          <button class="btn btn-outline" type="submit">{L.btn}</button>
+          <p class="out" hidden></p>
+        </form>
+      </div>
+      <div class="card" style="margin-top:20px">
+        <h3>{uk ? 'Контакти приймалень' : 'Office contacts'}</h3>
+        {contacts.offices.map((o) => <p><strong>{o.name[lang]}</strong><br />{o.person[lang]} · <span class="muted">{o.phone || s.phoneSoon}</span></p>)}
+        <p><strong>Email</strong><br /><a href={`mailto:${contacts.email}`}>{contacts.email}</a></p>
+        <p><strong>{s.hours}</strong><br />{contacts.hours[lang]}</p>
+      </div>
+    </aside>
+  </div></section>
+</Base>
+<script>
+  const f = document.getElementById('status') as HTMLFormElement;
+  f?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const out = f.querySelector<HTMLParagraphElement>('.out')!;
+    const n = (new FormData(f).get('n') as string).trim().toUpperCase();
+    const st = JSON.parse(f.dataset.st!);
+    try {
+      const r = await fetch(`/api/status?n=${encodeURIComponent(n)}`);
+      if (r.status === 404) out.textContent = f.dataset.nf!;
+      else { const j = await r.json(); out.innerHTML = `<strong>${n}</strong>: ${st[j.status] ?? j.status}`; }
+    } catch { out.textContent = f.dataset.err!; }
+    out.hidden = false;
+  });
+</script>
+<style>
+  .ap { display: grid; grid-template-columns: 1.4fr 1fr; gap: 28px; align-items: start; }
+  @media (max-width: 900px) { .ap { grid-template-columns: 1fr; } }
+  .out { margin: 14px 0 0; }
+</style>

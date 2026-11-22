@@ -1,0 +1,21 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import type { Lang } from '../data/site';
+import { contacts } from '../data/site';
+import { t, href } from '../i18n';
+const { lang } = Astro.props as { lang: Lang };
+const s = t(lang); const uk = lang === 'uk';
+const o = contacts.offices[0];
+---
+<Base lang={lang} title={s.district} alt={href('district', uk ? 'en' : 'uk')}>
+  <PageHead eyebrow={s.district} title={uk ? 'Виборчий округ №124' : 'Electoral district No. 124'} lead={uk ? 'Новини округу, прийом громадян і результати роботи для громад.' : 'District news, public reception and results for local communities.'} />
+  <section class="section"><div class="wrap grid g2">
+    <div class="card"><h3>{o.name[lang]}</h3>
+      <p>{uk ? 'Відповідальний за прийом звернень' : 'Responsible for appeals'}: <strong>{o.person[lang]}</strong></p>
+      <p>{uk ? 'Телефон' : 'Phone'}: <span class="muted">{o.phone || s.phoneSoon}</span></p>
+      <p>{s.hours}: {contacts.hours[lang]}</p>
+      <a class="btn btn-primary" href={href('appeal', lang)}>{s.appeal}</a></div>
+    <div class="placeholder">{uk ? 'Адреса приймальні, карта і новини округу — наповнюються' : 'Office address, map and district news — coming soon'}</div>
+  </div></section>
+</Base>

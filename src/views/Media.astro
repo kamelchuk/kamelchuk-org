@@ -1,0 +1,40 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import { getCollection } from 'astro:content';
+import type { Lang } from '../data/site';
+import { photos, socials } from '../data/site';
+import { t, href, fmtDate } from '../i18n';
+const { lang } = Astro.props as { lang: Lang };
+const s = t(lang); const uk = lang === 'uk';
+const videos = (await getCollection('media', (e) => e.id.startsWith(lang + '/') && !e.data.draft)).sort((a, b) => +b.data.date - +a.data.date);
+const yt = socials.find((x) => x.name === 'YouTube')!.url;
+// Фото для ЗМІ: оригінали у високій якості. Замінити на затверджені фото.
+const press = [
+  { src: photos.portrait, title: uk ? 'Портрет' : 'Portrait' },
+  { src: photos.hero, title: uk ? 'Публічний виступ' : 'Public appearance' },
+];
+---
+<Base lang={lang} title={s.media} alt={href('media', uk ? 'en' : 'uk')}>
+  <PageHead eyebrow={s.media} title={s.media} lead={uk ? 'Ефіри, інтерв\'ю та фото для засобів масової інформації.' : 'Broadcasts, interviews and photos for the press.'} />
+  <nav class="wrap sub"><a href="#video">{uk ? 'Відео' : 'Video'}</a><a href="#photo">{uk ? 'Фото для ЗМІ' : 'Press photos'}</a></nav>
+  <section class="section" id="video"><div class="wrap">
+    <h2>{s.mediaTitle}</h2>
+    {videos.length ? <div class="grid g3">{videos.map((v) => (
+      <div class="card" style="padding:0;overflow:hidden">
+        <iframe src={`https://www.youtube-nocookie.com/embed/${v.data.youtube}`} title={v.data.title} loading="lazy" allowfullscreen style="width:100%;aspect-ratio:16/9;border:0"></iframe>
+        <div style="padding:18px"><time class="muted">{fmtDate(v.data.date, lang)}</time><h3 style="font-size:1.05rem;margin-top:6px">{v.data.title}</h3><p class="muted">{v.data.excerpt}</p></div>
+      </div>))}</div>
+    : <div class="placeholder">{uk ? 'Перші відео з\'являться після затвердження нарізок.' : 'The first clips will appear once approved.'} <a href={yt} target="_blank" rel="noopener">YouTube ↗</a></div>}
+  </div></section>
+  <section class="section soft" id="photo"><div class="wrap">
+    <h2>{uk ? 'Фото для ЗМІ' : 'Press photos'}</h2>
+    <p class="muted">{uk ? 'Актуальні фотографії для публікацій. Використання дозволене із зазначенням джерела kamelchuk.org.' : 'Current photos for publication. Free to use with credit to kamelchuk.org.'}</p>
+    <div class="grid g3" style="margin-top:24px">{press.map((p) => (
+      <figure class="card" style="padding:0;overflow:hidden;margin:0">
+        <img src={p.src} alt={p.title} loading="lazy" style="aspect-ratio:4/5;object-fit:cover;width:100%" />
+        <figcaption style="padding:14px 18px;display:flex;justify-content:space-between;align-items:center"><strong>{p.title}</strong><a class="tag" href={p.src} download target="_blank">{uk ? 'Завантажити' : 'Download'}</a></figcaption>
+      </figure>))}</div>
+  </div></section>
+</Base>
+<style>.sub { display: flex; gap: 20px; padding-top: 20px; } .sub a { font-weight: 700; color: var(--accent-ink); text-decoration: none; }</style>

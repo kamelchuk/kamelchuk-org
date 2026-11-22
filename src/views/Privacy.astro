@@ -1,0 +1,25 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import type { Lang } from '../data/site';
+import { contacts } from '../data/site';
+import { t, href } from '../i18n';
+const { lang } = Astro.props as { lang: Lang };
+const s = t(lang); const uk = lang === 'uk';
+---
+<Base lang={lang} title={s.privacy} alt={href('privacy', uk ? 'en' : 'uk')}>
+  <PageHead title={s.privacy} />
+  <section class="section"><div class="wrap prose">
+    {uk ? <>
+      <p><em>Чернетка. Остаточний текст затверджує юрист команди.</em></p>
+      <p>Персональні дані, які ви залишаєте у формі звернення (ПІБ, телефон, email, область, населений пункт, текст і файли), використовуються лише для розгляду вашого звернення та відповіді на нього відповідно до Закону України «Про захист персональних даних».</p>
+      <p>Доступ до звернень мають народний депутат і уповноважені працівники приймальні. Дані не передаються третім особам, крім випадків, коли це потрібно для розгляду звернення в органах влади, або передбачено законом.</p>
+      <p>Щоб змінити або видалити свої дані, напишіть на <a href={`mailto:${contacts.email}`}>{contacts.email}</a>.</p>
+    </> : <>
+      <p><em>Draft. The final text is approved by the team's lawyer.</em></p>
+      <p>Personal data you submit in the appeal form (name, phone, email, region, town, text and files) is used only to handle and answer your appeal, in line with the Law of Ukraine "On Personal Data Protection".</p>
+      <p>Appeals are accessed only by the MP and authorised office staff. Data is not shared with third parties except where needed to handle the appeal with public authorities, or where required by law.</p>
+      <p>To change or delete your data, write to <a href={`mailto:${contacts.email}`}>{contacts.email}</a>.</p>
+    </>}
+  </div></section>
+</Base>

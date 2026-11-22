@@ -1,0 +1,8 @@
+name = "kamelchuk-org"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-11-01"
+
+# KV для звернень. Створити: npx wrangler kv namespace create APPEALS, і вписати id.
+[[kv_namespaces]]
+binding = "APPEALS"
+id = "REPLACE_WITH_KV_ID"
