@@ -5,6 +5,7 @@ import PostCard from '../components/PostCard.astro';
 import { getCollection } from 'astro:content';
 import type { Lang } from '../data/site';
 import { t, href } from '../i18n';
+import { topics } from '../data/site';
 interface Props { lang: Lang; kind: 'news' | 'blog' }
 const { lang, kind } = Astro.props;
 const s = t(lang); const uk = lang === 'uk';
@@ -16,7 +17,26 @@ const lead = kind === 'news'
 <Base lang={lang} title={s[kind]} alt={href(kind, uk ? 'en' : 'uk')}>
   <PageHead eyebrow={s[kind]} title={s[kind]} lead={lead} />
   <section class="section soft"><div class="wrap">
-    {items.length ? <div class="grid g3">{items.map((n) => <PostCard lang={lang} href={`${href(kind, lang)}${n.id.split('/')[1]}/`} title={n.data.title} date={n.data.date} image={n.data.image} tag={n.data.tag} excerpt={n.data.excerpt} />)}</div>
+    {items.length > 0 && <div class="filters" role="group">
+      <button class="chip on" data-f="">{uk ? 'Усі' : 'All'}</button>
+      {topics.map((x) => <button class="chip" data-f={x.id}>{x[lang].t}</button>)}
+    </div>}
+    {items.length ? <div class="grid g3 posts">{items.map((n) => <PostCard lang={lang} href={`${href(kind, lang)}${n.id.split('/')[1]}/`} title={n.data.title} date={n.data.date} image={n.data.image} tag={n.data.tag} pillar={n.data.pillar} excerpt={n.data.excerpt} />)}</div>
       : <div class="placeholder">{s.soon}</div>}
   </div></section>
 </Base>
+
+<script>
+  document.querySelectorAll<HTMLButtonElement>('.filters .chip').forEach((b) => b.addEventListener('click', () => {
+    document.querySelectorAll('.filters .chip').forEach((x) => x.classList.toggle('on', x === b));
+    const f = b.dataset.f;
+    document.querySelectorAll<HTMLElement>('.posts [data-pillar], .posts article').forEach((a) => { a.hidden = !!f && a.dataset.pillar !== f; });
+  }));
+</script>
+
+<style>
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+  .chip { font: 600 .85rem var(--font-head); border: 1px solid var(--line); background: #fff; color: var(--ink-2); border-radius: 999px; padding: .5em 1em; cursor: pointer; }
+  .chip.on, .chip:hover { background: var(--accent); border-color: var(--accent); color: #062b28; }
+  .posts :global(article[hidden]) { display: none; }
+</style>

@@ -52,26 +52,32 @@ export const orgs = [
 
 export const topics = [
   {
-    icon: '⚡',
-    uk: { t: 'Енергетика', d: 'Енергетична незалежність, системи зберігання енергії, відновлювана генерація, зарядна інфраструктура.' },
-    en: { t: 'Energy', d: 'Energy independence, energy storage, renewable generation and EV charging infrastructure.' },
+    id: 'state', icon: '🛡',
+    uk: { t: 'Сильна держава', d: 'Армія, безпека, відповідальність влади, сильні інституції.' },
+    en: { t: 'A strong state', d: 'The army, security, accountable government and strong institutions.' },
   },
   {
-    icon: '📈',
-    uk: { t: 'Економіка', d: 'Підтримка бізнесу, інвестиції у відбудову, прозорі правила для підприємців.' },
-    en: { t: 'Economy', d: 'Support for business, investment in reconstruction, clear rules for entrepreneurs.' },
+    id: 'energy', icon: '⚡',
+    uk: { t: 'Енергетична незалежність', d: 'Тарифи, вугілля, газ, атом, боротьба з корупцією, енергобезпека.' },
+    en: { t: 'Energy independence', d: 'Tariffs, coal, gas, nuclear, fighting corruption, energy security.' },
   },
   {
-    icon: '🌍',
-    uk: { t: 'Міжнародна політика', d: 'Робота в делегації до ПАРЄ, Ініціатива Трьох Морів, міжпарламентські групи дружби.' },
-    en: { t: 'International affairs', d: 'PACE delegation, the Three Seas Initiative and parliamentary friendship groups.' },
+    id: 'europe', icon: '🇪🇺',
+    uk: { t: 'Європейська суб\'єктність України', d: 'ПАРЄ, ЄС, НАТО, Ініціатива Трьох Морів, міжнародна підтримка.' },
+    en: { t: 'Ukraine as a European actor', d: 'PACE, the EU, NATO, the Three Seas Initiative, international support.' },
   },
   {
-    icon: '🛡',
-    uk: { t: 'Оборона', d: 'Підтримка військових і ветеранів, захист від атак дронів, відновлення ветеранів.' },
-    en: { t: 'Defence', d: 'Support for soldiers and veterans, protection against drone attacks, veteran recovery.' },
+    id: 'fair', icon: '🤝',
+    uk: { t: 'Справедливість для військових і громадян', d: 'Мобілізація, ТЦК, реабілітація, гідність військових.' },
+    en: { t: 'Fairness for soldiers and citizens', d: 'Mobilisation, recruitment centres, rehabilitation, dignity for soldiers.' },
   },
-];
+  {
+    id: 'team', icon: '👥',
+    uk: { t: 'Нова політична команда', d: 'Партія, регіони, кандидати, чесні правила відбору, кодекс.' },
+    en: { t: 'A new political team', d: 'The party, regions, candidates, fair selection rules, a code of conduct.' },
+  },
+] as const;
+export type Pillar = (typeof topics)[number]['id'];
 
 export const appealTopics = {
   uk: ['Соціальний захист', 'Енергетика і комунальні послуги', 'Підтримка військових і ветеранів', 'Бізнес і економіка', 'Правова допомога', 'Інфраструктура громади', 'Інше'],

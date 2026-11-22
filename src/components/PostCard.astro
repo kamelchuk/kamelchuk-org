@@ -1,13 +1,15 @@
 ---
-import type { Lang } from '../data/site';
+import type { Lang, Pillar } from '../data/site';
+import { topics } from '../data/site';
 import { fmtDate, t } from '../i18n';
-interface Props { lang: Lang; href: string; title: string; date: Date; image?: string; tag?: string; excerpt: string }
-const { lang, href, title, date, image, tag, excerpt } = Astro.props;
+interface Props { lang: Lang; href: string; title: string; date: Date; image?: string; tag?: string; pillar?: Pillar; excerpt: string }
+const { lang, href, title, date, image, tag, pillar, excerpt } = Astro.props;
+const label = pillar ? topics.find((x) => x.id === pillar)?.[lang].t : tag;
 ---
-<article class="pc">
+<article class="pc" data-pillar={pillar}>
   {image && <a href={href} class="img"><img src={image} alt="" loading="lazy" /></a>}
   <div class="body">
-    <div class="meta">{tag && <span class="tag">{tag}</span>}<time>{fmtDate(date, lang)}</time></div>
+    <div class="meta">{label && <span class="tag">{label}</span>}<time>{fmtDate(date, lang)}</time></div>
     <h3><a href={href}>{title}</a></h3>
     <p class="muted">{excerpt}</p>
     <a class="more" href={href}>{t(lang).readMore} →</a>
