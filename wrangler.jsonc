@@ -3,6 +3,8 @@
 {
   "name": "kamelchuk-org",
   "compatibility_date": "2026-11-01",
+  // Збирає сайт перед деплоєм, навіть якщо в Cloudflare не вказано Build command
+  "build": { "command": "npm run build" },
   "assets": {
     "directory": "./dist",
     "not_found_handling": "404-page"
