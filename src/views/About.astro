@@ -12,6 +12,49 @@ const roles = uk
 const facts = uk
   ? ['Автор законів «Про системи зберігання енергії» та «Про розвиток інфраструктури для заряджання електромобілів».', 'Співавтор майже 500 законопроєктів.', 'Голова міжфракційного депутатського об\'єднання «Ініціатива Трьох Морів».', 'Заступник співголови груп дружби з Катаром, Сингапуром і Бельгією.', 'Кандидат на посаду міністра енергетики України у 2025 році.']
   : ['Author of the laws "On Energy Storage Systems" and "On the Development of EV Charging Infrastructure".', 'Co-author of almost 500 bills.', 'Chair of the cross-party parliamentary group "Three Seas Initiative".', 'Deputy co-chair of the friendship groups with Qatar, Singapore and Belgium.', 'Candidate for Minister of Energy of Ukraine in 2025.'];
+const bio = uk
+  ? {
+      title: 'Біографія', updated: 'Оновлено 23 листопада 2026 року',
+      rows: [
+        ['Народження', '12 лютого 1980 року, м. Львів.'],
+        ['Освіта', 'Львівський національний університет імені Івана Франка, факультет журналістики.'],
+        ['', 'Київський національний університет імені Тараса Шевченка, магістр за спеціальністю «Публічне управління та адміністрування», 2021 рік.'],
+        ['', 'Аспірантура факультету міжнародних відносин Львівського національного університету імені Івана Франка (навчається).'],
+        ['Підприємництво', 'Займається бізнесом з 1997 року. Заснував понад 15 компаній.'],
+        ['2019', 'Обраний народним депутатом України IX скликання по одномандатному виборчому округу № 124 (Львівська область), висунутий партією «Слуга народу». Повноваження з 29 серпня 2019 року.'],
+        ['У Верховній Раді', 'Член Комітету з питань енергетики та житлово-комунальних послуг. Заступник члена Постійної делегації у Парламентській асамблеї Ради Європи.'],
+        ['2024', 'Вийшов з партії «Слуга народу». Залишається членом депутатської фракції.'],
+        ['З квітня 2025', 'Очолює партію «Українська Нація».'],
+      ],
+      sources: 'Джерела: картка народного депутата та відкриті дані Верховної Ради України; документ про освіту.',
+    }
+  : {
+      title: 'Biography', updated: 'Updated 23 November 2026',
+      rows: [
+        ['Born', '12 February 1980, Lviv.'],
+        ['Education', 'Ivan Franko National University of Lviv, Faculty of Journalism.'],
+        ['', 'Taras Shevchenko National University of Kyiv, master\'s degree in Public Management and Administration, 2021.'],
+        ['', 'Postgraduate studies at the Faculty of International Relations, Ivan Franko National University of Lviv (ongoing).'],
+        ['Business', 'In business since 1997. Founded more than 15 companies.'],
+        ['2019', 'Elected Member of the Verkhovna Rada of Ukraine (9th convocation) in single-member district No. 124 (Lviv region), nominated by the Servant of the People party. Took office on 29 August 2019.'],
+        ['In parliament', 'Member of the Committee on Energy, Housing and Utilities. Substitute member of the Permanent Delegation to the Parliamentary Assembly of the Council of Europe.'],
+        ['2024', 'Left the Servant of the People party. Remains a member of its parliamentary faction.'],
+        ['Since April 2025', 'Leader of the Ukrainian Nation party.'],
+      ],
+      sources: 'Sources: MP profile and open data of the Verkhovna Rada of Ukraine; diploma.',
+    };
+const ld = {
+  '@context': 'https://schema.org', '@type': 'Person',
+  name: uk ? 'Юрій Олександрович Камельчук' : 'Yurii Oleksandrovych Kamelchuk',
+  birthDate: '1980-02-12', birthPlace: uk ? 'Львів' : 'Lviv',
+  jobTitle: uk ? 'Народний депутат України' : 'Member of Parliament of Ukraine',
+  alumniOf: [
+    { '@type': 'CollegeOrUniversity', name: uk ? 'Львівський національний університет імені Івана Франка' : 'Ivan Franko National University of Lviv' },
+    { '@type': 'CollegeOrUniversity', name: uk ? 'Київський національний університет імені Тараса Шевченка' : 'Taras Shevchenko National University of Kyiv' },
+  ],
+  memberOf: { '@type': 'PoliticalParty', name: uk ? 'Українська Нація' : 'Ukrainian Nation' },
+  url: 'https://kamelchuk.org' + href('about', lang),
+};
 ---
 <Base lang={lang} title={s.about} alt={href('about', uk ? 'en' : 'uk')}>
   <PageHead eyebrow={s.about} title={uk ? 'Камельчук Юрій Олександрович' : 'Yurii Oleksandrovych Kamelchuk'} />
@@ -19,15 +62,23 @@ const facts = uk
     <img src={photos.portrait} alt={s.name} class="ph" />
     <div class="prose">
       {uk ? <>
-        <p class="big">Український політик. Народний депутат Верховної Ради України. Член комітету з питань енергетики. Учасник постійної делегації України до Парламентської асамблеї Ради Європи (ПАРЄ). Засновник і лідер партії «Українська Нація».</p>
-        <p>Закінчив Львівський національний університет імені Івана Франка за спеціальністю «Журналістика» та магістратуру Київського національного університету імені Тараса Шевченка за спеціальністю «Державне управління». Працює над науковою роботою в аспірантурі факультету міжнародних відносин ЛНУ імені Івана Франка.</p>
+        <p class="big">Український політик. Народний депутат Верховної Ради України. Член комітету з питань енергетики. Заступник члена Постійної делегації України в Парламентській асамблеї Ради Європи (ПАРЄ). З квітня 2025 року очолює партію «Українська Нація».</p>
+        <p>Закінчив Львівський національний університет імені Івана Франка за спеціальністю «Журналістика» та магістратуру Київського національного університету імені Тараса Шевченка за спеціальністю «Публічне управління та адміністрування» (2021). Працює над науковою роботою в аспірантурі факультету міжнародних відносин ЛНУ імені Івана Франка.</p>
         <p>Засновник Української Бізнес Спільноти, Української Бізнес Платформи, Cardinal University, Cardinal Capital, Центру Підтримки Військових, Центру Відновлення Ветеранів, Центру Підтримки Української Нації.</p>
       </> : <>
-        <p class="big">Ukrainian politician. Member of the Verkhovna Rada of Ukraine and of its Energy Committee. Member of Ukraine's permanent delegation to the Parliamentary Assembly of the Council of Europe (PACE). Founder and leader of the Ukrainian Nation party.</p>
-        <p>Graduated in Journalism from Ivan Franko National University of Lviv and holds a master's degree in Public Administration from Taras Shevchenko National University of Kyiv. Currently a postgraduate researcher at the Faculty of International Relations, Ivan Franko National University of Lviv.</p>
+        <p class="big">Ukrainian politician. Member of the Verkhovna Rada of Ukraine and of its Energy Committee. Substitute member of Ukraine's permanent delegation to the Parliamentary Assembly of the Council of Europe (PACE). Leader of the Ukrainian Nation party since April 2025.</p>
+        <p>Graduated in Journalism from Ivan Franko National University of Lviv and holds a master's degree in Public Management and Administration from Taras Shevchenko National University of Kyiv (2021). Currently a postgraduate researcher at the Faculty of International Relations, Ivan Franko National University of Lviv.</p>
         <p>Founder of the Ukrainian Business Community, the Ukrainian Business Platform, Cardinal University, Cardinal Capital, the Military Support Center, the Veterans Recovery Center and the Ukrainian Nation Support Center.</p>
       </>}
     </div>
+  </div></section>
+  <section class="section" id="biography"><div class="wrap prose">
+    <h2>{bio.title}</h2>
+    <dl class="bio">
+      {bio.rows.map(([k, v]) => <><dt>{k}</dt><dd>{v}</dd></>)}
+    </dl>
+    <p class="muted small">{bio.sources} {bio.updated}.</p>
+    <script type="application/ld+json" set:html={JSON.stringify(ld)} />
   </div></section>
   <section class="section soft"><div class="wrap grid g3">
     {roles.map(([a, b]) => <div class="card"><h3>{a}</h3><p class="muted">{b}</p></div>)}
@@ -42,5 +93,10 @@ const facts = uk
   .ph { border-radius: var(--radius); width: 100%; }
   .big { font-size: 1.2rem; font-weight: 600; }
   .facts li { margin-bottom: 10px; }
+  .bio { display: grid; grid-template-columns: 180px 1fr; gap: 10px 24px; margin: 0 0 20px; }
+  .bio dt { font-family: var(--font-head); font-weight: 600; color: var(--accent-ink); }
+  .bio dd { margin: 0; }
+  .small { font-size: .85rem; }
+  @media (max-width: 640px) { .bio { grid-template-columns: 1fr; gap: 2px; } .bio dd { margin-bottom: 12px; } }
   @media (max-width: 820px) { .ab { grid-template-columns: 1fr; } .ph { max-width: 380px; } }
 </style>
