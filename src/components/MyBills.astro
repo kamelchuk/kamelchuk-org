@@ -1,0 +1,166 @@
+---
+// Блок «Мої законопроєкти» для сторінки «Діяльність».
+// Дані: src/data/bills.json (оновлює scripts/update-bills.mjs з відкритих даних ВР),
+// пояснення: src/data/bills-why.ts. «Висловитися» веде на форму звернень з номером законопроєкту.
+import type { Lang } from '../data/site';
+import data from '../data/bills.json';
+import { billsWhy } from '../data/bills-why';
+import { href } from '../i18n';
+interface Props { lang: Lang }
+const { lang } = Astro.props;
+const uk = lang === 'uk';
+
+const OK = ['Закон підписано', 'Постанову підписано'];
+const OFF = ['Знято з розгляду', 'Заслухано та знято з розгляду', 'Відхилено та знято з розгляду'];
+const group = (p: string) => (OK.includes(p) ? 'ok' : OFF.includes(p) ? 'off' : 'work');
+const fmt = (d: string) => d.split('-').reverse().join('.');
+const cap = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+const L = uk
+  ? {
+      eyebrow: 'Робота у Верховній Раді · IX скликання', title: 'Мої законопроєкти',
+      lead: 'Тут усе, що я вносив до парламенту як автор, з поточним статусом із сайту Верховної Ради. До ключових документів пояснюю простими словами, що вони змінюють. Маєте думку, зауваження чи пропозицію? Натисніть «Висловитися».',
+      s1: 'власних ініціатив, де я один із 1–3 авторів', s2: 'з них стали законами або постановами', s3: 'документів, де я серед співавторів', s4: 'із них уже підписані як закони',
+      all: 'Усі', ok: 'Ухвалені', work: 'У роботі', off: 'Не пройшли', topics: 'Усі теми',
+      t: { energy: 'Енергетика і ЖКП', econ: 'Економіка і бюджет', law: 'Право і суди', other: 'Інше' } as Record<string, string>,
+      law: 'Законопроєкт', res: 'Проєкт постанови', filed: 'внесено', why: 'Що це змінює для людей', pending: 'Пояснення простими словами готується.',
+      say: 'Висловитися', card: 'Картка на сайті ВР', shown: 'Показано', of: 'з', none: 'За цими фільтрами документів немає.',
+      src: 'Джерело даних', srcName: 'Портал відкритих даних Верховної Ради України', asOf: 'Дані станом на', titlesNote: '',
+    }
+  : {
+      eyebrow: 'Work in the Verkhovna Rada · 9th convocation', title: 'My bills',
+      lead: 'Everything I have submitted to parliament as an author, with its current status from the Verkhovna Rada website. For key documents I explain in plain words what they change. Have a view, a concern or a proposal? Press "Have your say".',
+      s1: 'own initiatives, with 1–3 authors', s2: 'of them became laws or resolutions', s3: 'documents I co-authored', s4: 'of them signed into law',
+      all: 'All', ok: 'Adopted', work: 'In progress', off: 'Did not pass', topics: 'All topics',
+      t: { energy: 'Energy and utilities', econ: 'Economy and budget', law: 'Law and courts', other: 'Other' } as Record<string, string>,
+      law: 'Bill', res: 'Draft resolution', filed: 'filed', why: 'What it changes for people', pending: 'A plain-language explanation is being prepared.',
+      say: 'Have your say', card: 'Rada record', shown: 'Showing', of: 'of', none: 'No documents match these filters.',
+      src: 'Data source', srcName: 'Open Data Portal of the Verkhovna Rada of Ukraine', asOf: 'Data as of', titlesNote: 'Titles and statuses are shown in Ukrainian, as registered in parliament.',
+    };
+
+const featured = (n: string) => (billsWhy[n] ? 1 : 0);
+const bills = [...data.bills].sort((a, b) => featured(b.number) - featured(a.number) || b.date.localeCompare(a.date));
+const appeal = href('appeal', lang);
+---
+<section class="section soft my-bills" id="bills">
+  <div class="wrap">
+    <div class="eyebrow">{L.eyebrow}</div>
+    <h2>{L.title}</h2>
+    <p class="lead">{L.lead}</p>
+
+    <div class="stats">
+      <div><b>{data.stats.own}</b><span>{L.s1}</span></div>
+      <div><b>{data.stats.ownPassed}</b><span>{L.s2}</span></div>
+      <div><b>{data.stats.coauthored}</b><span>{L.s3}</span></div>
+      <div><b>{data.stats.coauthoredLaws}</b><span>{L.s4}</span></div>
+    </div>
+
+    <div class="filters" data-bills-filters>
+      <button type="button" class="chip" data-f="all" aria-pressed="true">{L.all}</button>
+      <button type="button" class="chip" data-f="ok" aria-pressed="false">{L.ok}</button>
+      <button type="button" class="chip" data-f="work" aria-pressed="false">{L.work}</button>
+      <button type="button" class="chip" data-f="off" aria-pressed="false">{L.off}</button>
+      <select id="bills-topic" aria-label={L.topics}>
+        <option value="">{L.topics}</option>
+        {Object.entries(L.t).map(([k, v]) => <option value={k}>{v}</option>)}
+      </select>
+    </div>
+    <p class="count muted" aria-live="polite" data-bills-count data-tpl={`${L.shown} {n} ${L.of} ${bills.length}`}>{L.shown} {bills.length} {L.of} {bills.length}</p>
+
+    <div class="list">
+      {bills.map((b) => {
+        const g = group(b.phase);
+        const why = billsWhy[b.number]?.[lang];
+        const kind = b.kind === 'law' ? L.law : L.res;
+        const sayHref = `${appeal}?bill=${encodeURIComponent(b.number)}#appeal-form`;
+        return (
+          <article class="bill" data-g={g} data-topic={b.topic}>
+            <div class="meta">
+              <span class="num">№ {b.number}</span><span>{kind}</span><span>{L.filed} {fmt(b.date)}</span>
+              <span class={`pill ${g}`}>{b.phase} · {fmt(b.phaseDate)}</span>
+            </div>
+            <h3>{uk ? `${kind} ${b.title}` : cap(b.title)}</h3>
+            {why
+              ? <div class="why"><span class="lbl">{L.why}</span><p>{why}</p></div>
+              : <p class="pending">{L.pending}</p>}
+            <div class="acts">
+              <a class="btn btn-primary" href={sayHref}>{L.say}</a>
+              <a class="src" href={`https://w1.c1.rada.gov.ua/pls/zweb2/webproc4_1?pf3511=${b.id}`} target="_blank" rel="noopener">{L.card}</a>
+            </div>
+          </article>
+        );
+      })}
+      <p class="muted none" hidden data-bills-none>{L.none}</p>
+    </div>
+
+    <p class="note muted">
+      {L.src}: <a href={data.source} target="_blank" rel="noopener">{L.srcName}</a>. {L.asOf} {fmt(data.updated)}. {L.titlesNote}
+    </p>
+  </div>
+</section>
+
+<script>
+  const root = document.querySelector<HTMLElement>('.my-bills');
+  if (root) {
+    let f = 'all';
+    let topic = '';
+    const cards = [...root.querySelectorAll<HTMLElement>('.bill')];
+    const count = root.querySelector<HTMLElement>('[data-bills-count]')!;
+    const none = root.querySelector<HTMLElement>('[data-bills-none]')!;
+    const apply = () => {
+      let n = 0;
+      for (const c of cards) {
+        const show = (f === 'all' || c.dataset.g === f) && (!topic || c.dataset.topic === topic);
+        c.hidden = !show;
+        if (show) n++;
+      }
+      count.textContent = count.dataset.tpl!.replace('{n}', String(n));
+      none.hidden = n > 0;
+      root.querySelectorAll<HTMLElement>('.chip').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.f === f)));
+    };
+    root.querySelector('[data-bills-filters]')!.addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLElement>('.chip');
+      if (b) { f = b.dataset.f!; apply(); }
+    });
+    root.querySelector<HTMLSelectElement>('#bills-topic')!.addEventListener('change', (e) => {
+      topic = (e.target as HTMLSelectElement).value; apply();
+    });
+  }
+</script>
+
+<style>
+  .my-bills .lead { max-width: 720px; margin: 0 0 28px; }
+  .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; margin-bottom: 28px; }
+  .stats > div { background: #fff; padding: 18px 20px; }
+  .stats b { display: block; font-family: var(--font-head); font-size: 1.9rem; line-height: 1.1; color: var(--accent-ink); font-variant-numeric: tabular-nums; }
+  .stats span { display: block; margin-top: 4px; font-size: .85rem; color: var(--muted); line-height: 1.35; }
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .chip { font: inherit; font-size: .9rem; border: 1px solid var(--line); background: #fff; color: var(--ink); border-radius: 999px; padding: 6px 16px; cursor: pointer; }
+  .chip[aria-pressed='true'] { background: var(--ink-2); color: #fff; border-color: var(--ink-2); }
+  .filters select { width: auto; margin-left: auto; padding: 8px 12px; font-size: .9rem; }
+  .count { font-size: .9rem; margin: 14px 0; }
+  .list { display: grid; gap: 16px; }
+  .bill { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 24px; display: grid; gap: 12px; min-width: 0; }
+  .bill[hidden] { display: none; }
+  .meta { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; font-size: .82rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+  .num { font-weight: 700; color: var(--ink); }
+  .pill { font-size: .75rem; font-weight: 700; padding: .25em .8em; border-radius: 999px; }
+  .pill.ok { color: var(--accent-ink); background: #dffcf8; }
+  .pill.work { color: #8a5300; background: #fdf1dc; }
+  .pill.off { color: var(--muted); background: var(--bg-soft); }
+  .bill h3 { font-size: 1.05rem; font-weight: 600; margin: 0; line-height: 1.4; }
+  .why { border-left: 3px solid var(--accent); background: #effcfa; padding: 12px 16px; border-radius: 0 10px 10px 0; }
+  .why .lbl { display: block; font-family: var(--font-head); font-size: .72rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; color: var(--accent-ink); margin-bottom: 4px; }
+  .why p { margin: 0; max-width: 760px; }
+  .pending { margin: 0; font-size: .9rem; font-style: italic; color: var(--muted); }
+  .acts { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; }
+  .acts .btn { padding: .6em 1.3em; font-size: .9rem; }
+  .src { font-size: .9rem; color: var(--blue); }
+  .note { font-size: .85rem; margin: 24px 0 0; }
+  .none { margin: 0; }
+  @media (max-width: 720px) {
+    .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .filters select { margin-left: 0; width: 100%; }
+    .bill { padding: 18px; }
+  }
+</style>

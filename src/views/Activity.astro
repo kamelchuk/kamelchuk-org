@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import PageHead from '../components/PageHead.astro';
+import MyBills from '../components/MyBills.astro';
 import type { Lang } from '../data/site';
 import { t, href } from '../i18n';
 const { lang } = Astro.props as { lang: Lang };
@@ -14,4 +15,5 @@ const items = uk
   <section class="section"><div class="wrap grid g3">
     {items.map(([a, b, k]) => <a class="card" style="text-decoration:none" href={href(k as any, lang)}><h3>{a}</h3><p class="muted">{b}</p></a>)}
   </div></section>
+  <MyBills lang={lang} />
 </Base>
