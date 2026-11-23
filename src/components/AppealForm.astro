@@ -29,6 +29,14 @@ const L = uk
 </form>
 
 <script>
+  // Перехід з блоку «Мої законопроєкти»: ?bill=2386 підставляє номер законопроєкту в текст звернення.
+  const bill = new URLSearchParams(location.search).get('bill');
+  if (bill && /^[\d-]{1,12}$/.test(bill)) {
+    const uk = document.documentElement.lang === 'uk';
+    document.querySelectorAll<HTMLTextAreaElement>('form.appeal textarea[name="text"]').forEach((t) => {
+      if (!t.value) t.value = (uk ? `Щодо законопроєкту № ${bill}: ` : `About bill No. ${bill}: `);
+    });
+  }
   document.querySelectorAll<HTMLFormElement>('form.appeal').forEach((f) => {
     f.addEventListener('submit', async (e) => {
       e.preventDefault();

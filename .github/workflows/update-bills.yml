@@ -1,0 +1,25 @@
+# Щоночі оновлює src/data/bills.json з відкритих даних Верховної Ради.
+# Якщо щось змінилося (новий законопроєкт або статус), комітить у main, і сайт перезбирається.
+name: Оновити законопроєкти з ВР
+on:
+  schedule:
+    - cron: '30 3 * * *' # 05:30 / 06:30 за Києвом
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+      - run: node scripts/update-bills.mjs
+      - name: Commit changes
+        run: |
+          if git diff --quiet; then echo "Без змін"; exit 0; fi
+          git config user.name "kamelchuk-org bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -am "Законопроєкти: оновлення з відкритих даних ВР"
+          git push
