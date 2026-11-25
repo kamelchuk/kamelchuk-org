@@ -1,4 +1,5 @@
 // Сайт kamelchuk.org на Cloudflare Workers: статика з dist/ + API форми звернень (worker/index.ts).
+// Журнал приймальні (CRM): /journal + /api/journal/* (worker/journal/), вхід через Cloudflare Access — див. docs/journal.md.
 // Секрети TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_IDS і ADMIN_TOKEN задаються в Cloudflare: Worker → Settings → Variables and Secrets.
 {
   "name": "kamelchuk-org",
@@ -9,8 +10,8 @@
     "directory": "./dist",
     "binding": "ASSETS",
     "not_found_handling": "404-page",
-    "run_worker_first": ["/api/*"]
+    "run_worker_first": ["/api/*", "/journal", "/journal/*"]
   },
-  "durable_objects": { "bindings": [{ "name": "APPEALS", "class_name": "AppealsStore" }] },
-  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["AppealsStore"] }]
+  "durable_objects": { "bindings": [{ "name": "APPEALS", "class_name": "AppealsStore" }, { "name": "JOURNAL", "class_name": "JournalStore" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["AppealsStore"] }, { "tag": "v2", "new_sqlite_classes": ["JournalStore"] }]
 }
