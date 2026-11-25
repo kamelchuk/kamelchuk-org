@@ -207,6 +207,13 @@ export async function handleJournal(request: Request, env: JournalEnv, path: str
   }
 
   if (isPage) {
+    // Картинки й PDF інструкції (public/journal/help/) — лише для команди, після перевірки входу.
+    if (/^\/journal\/help\/[\w.-]+\.(png|pdf)$/.test(path)) {
+      const res = await env.ASSETS.fetch(request);
+      const out = new Response(res.body, res);
+      out.headers.set('cache-control', 'private, max-age=3600');
+      return out;
+    }
     const res = await env.ASSETS.fetch(new Request(new URL('/journal/', request.url), request));
     const out = new Response(res.body, res);
     for (const [k, v] of Object.entries(NO_STORE)) out.headers.set(k, v);
