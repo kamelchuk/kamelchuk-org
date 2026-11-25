@@ -331,6 +331,30 @@ export class JournalStore extends DurableObject {
     this.log('bot', 'notify', 'key', 'claim', null);
     return key;
   }
+  // Посилання для копії в Google-таблицю (=IMPORTDATA): секретний ключ у адресі, зберігаємо лише хеш.
+  async newSheetKey(by: string) {
+    const key = token(24);
+    this.kvSet('sheet:key', await sha(key));
+    this.kvSet('sheet:created', nowIso());
+    this.kvSet('sheet:last_fetch', null);
+    this.log(by, 'sheet', 'key', 'create', null);
+    return key;
+  }
+  async dropSheetKey(by: string) {
+    this.kvSet('sheet:key', null);
+    this.kvSet('sheet:created', null);
+    this.log(by, 'sheet', 'key', 'delete', null);
+    return { ok: true };
+  }
+  async checkSheetKey(key: string) {
+    const h = this.kvGet('sheet:key');
+    const ok = !!h && !!key && h === (await sha(key));
+    if (ok) this.kvSet('sheet:last_fetch', nowIso());
+    return ok;
+  }
+  async sheetStatus() {
+    return { enabled: !!this.kvGet('sheet:key'), created: this.kvGet('sheet:created'), last_fetch: this.kvGet('sheet:last_fetch') };
+  }
   async checkNotifyKey(key: string) {
     const h = this.kvGet('notify:key');
     return !!h && !!key && h === (await sha(key));
