@@ -71,7 +71,7 @@ async function appeal(request: Request, env: Env, ctx: ExecutionContext) {
       initiator: a.name, contact: `${a.phone} · ${a.email}`, city: `${a.city}, ${a.region}`,
       category: SITE_TOPIC_CATEGORY[a.topic] ?? 'Інше',
       summary: `${a.topic}: ${a.text.replace(/\s+/g, ' ').slice(0, 240)}${a.text.length > 240 ? '…' : ''}`,
-      details: a.text, files: files.length ? `Файли в Telegram: ${files.map((f) => f.name).join(', ')}` : null,
+      details: a.text, files: files.length ? `Файли зі звернення (${files.length}) — у картці справи` : null,
       responsible: env.JOURNAL_SITE_RESPONSIBLE ?? 'Юлія Бондар', site_number: a.number,
     }) as { id: string } | null;
     kz = c?.id ?? '';
