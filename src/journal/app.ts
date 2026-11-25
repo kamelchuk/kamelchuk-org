@@ -493,7 +493,7 @@ function histDetails(raw: string) {
 
 // ---------- команда ----------
 async function teamView() {
-  const users = await api<Any[]>('users');
+  const [users, sheet] = await Promise.all([api<Any[]>('users'), api<Any>('sheet-link')]);
   const roleName: Record<string, string> = { admin: 'Координатор (усе, включно з командою)', assistant: 'Помічник (веде справи)', viewer: 'Перегляд (дашборд і справи)' };
   const form = (u: Any = {}) => `<form class="uf g2f">
     ${field('Email *', input('email', u.email, 'email', `required ${u.email ? 'readonly' : ''}`))}
@@ -506,9 +506,31 @@ async function teamView() {
   <div class="head"><h1>Команда</h1></div>
   <p class="muted">Тут визначається, хто має доступ до журналу. Людина входить на kamelchuk.org/journal зі своїм email і кодом з пошти. Якщо email не в цьому списку або вимкнений — доступу немає.</p>
   <section class="card"><h2>Додати людину</h2>${form()}</section>
+  <section class="card" id="sheetCard"><h2>Копія в Google-таблицю</h2>
+    <p class="muted">Таблиця «📥 ЖУРНАЛ. Камельчук» сама забирає справи й дії з журналу (Google оновлює приблизно щогодини). ${sheet.enabled ? `Посилання створено ${esc(String(sheet.created ?? '').slice(0, 16).replace('T', ' '))} UTC${sheet.last_fetch ? `, таблиця востаннє забирала дані ${esc(String(sheet.last_fetch).slice(0, 16).replace('T', ' '))} UTC` : ', таблиця ще не забирала дані'}.` : 'Посилання ще не створено.'}</p>
+    <div id="sheetOut"></div>
+    <div class="wiz-nav"><button type="button" class="btn btn-primary sm" id="sheetNew">${sheet.enabled ? 'Створити нове посилання (старе перестане працювати)' : 'Створити посилання'}</button>${sheet.enabled ? '<button type="button" class="lnk red" id="sheetDrop">Вимкнути копію</button>' : ''}</div>
+  </section>
   <section class="card"><h2>У команді <span class="muted">${users.length}</span></h2>
     <div class="users">${users.map((u) => `<details class="user"><summary><b>${esc(u.name)}</b> <span class="muted">${esc(u.email)}</span> <span class="badge ${u.active ? 'st-work' : 'st-closed'}">${esc(roleName[u.role]?.split(' (')[0] ?? u.role)}${u.active ? '' : ' · вимкнено'}</span></summary>${form(u)}</details>`).join('') || '<p class="muted">Поки нікого не додано. Координатори з налаштувань (JOURNAL_ADMINS) мають доступ завжди.</p>'}</div>
   </section>`;
+  const SHEET = 'https://docs.google.com/spreadsheets/d/1mpo_26goAwjnSE8ILwKFmVp8_1qYOh_DT8Rew-JEmJY/edit';
+  view.querySelector('#sheetNew')?.addEventListener('click', async () => {
+    try {
+      const r = await api<Any>('sheet-link', 'POST');
+      const row = (name: string, url: string) => {
+        const f = `=IMPORTDATA("${url}")`;
+        return `<p><b>Аркуш «${name}»</b>, клітинка A1 (аркуш має бути порожнім):</p><div class="filters"><input readonly value="${esc(f)}" onclick="this.select()"><button type="button" class="btn btn-outline sm" data-copy="${esc(f)}">Копіювати</button></div>`;
+      };
+      view.querySelector('#sheetOut')!.innerHTML = `${row('Справи', r.cases)}${row('Дії', r.actions)}
+        <p class="muted">Посилання з ключем показано лише зараз. Нікому його не пересилайте: хто має формулу, бачить усі справи. <a href="${SHEET}" target="_blank" rel="noopener">Відкрити таблицю ↗</a></p>`;
+      view.querySelectorAll<HTMLButtonElement>('[data-copy]').forEach((b) => b.addEventListener('click', async () => { await navigator.clipboard.writeText(b.dataset.copy!); toast('Скопійовано'); }));
+    } catch (err) { toast((err as Error).message, true); }
+  });
+  view.querySelector('#sheetDrop')?.addEventListener('click', async () => {
+    if (!confirm('Вимкнути копію в таблицю? Формули в таблиці перестануть оновлюватися.')) return;
+    try { await api('sheet-link', 'DELETE'); toast('Копію вимкнено'); teamView(); } catch (err) { toast((err as Error).message, true); }
+  });
   view.querySelectorAll<HTMLFormElement>('.uf').forEach((f) => f.addEventListener('submit', async (e) => {
     e.preventDefault();
     const d = formData(f);

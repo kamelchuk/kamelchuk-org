@@ -161,6 +161,19 @@ export async function handleJournal(request: Request, env: JournalEnv, path: str
     return json({ updated: new Date().toISOString(), cases: table(data.cases, CASE_COLS), actions: table(data.actions, ACTION_COLS) });
   }
 
+  // Копія в Google-таблицю без Apps Script: =IMPORTDATA("https://kamelchuk.org/api/sync/csv/<ключ>/cases.csv").
+  // Google сам оновлює формулу приблизно щогодини. Ключ створює координатор у розділі «Команда».
+  if (path.startsWith('/api/sync/csv/') && request.method === 'GET') {
+    const [, , , key, file] = path.split('/').filter(Boolean);
+    const store = journal(env);
+    if (!key || !(await store.checkSheetKey(key))) return json({ error: 'unauthorized' }, 401);
+    const sheet = file === 'actions.csv' ? 'actions' : file === 'cases.csv' ? 'cases' : '';
+    if (!sheet) return json({ error: 'not found' }, 404);
+    const data = await list(store);
+    const rows = sheet === 'actions' ? table(data.actions, ACTION_COLS) : table(data.cases, CASE_COLS);
+    return new Response(rows.map((r) => r.map(csvCell).join(',')).join('\r\n'), { headers: { 'content-type': 'text/csv; charset=utf-8', ...NO_STORE } });
+  }
+
   // Черга сповіщень для бота (Крістофер): обмін коду на ключ, забрати нові, файл, підтвердити.
   if (path.startsWith('/api/notify/')) {
     const store = journal(env);
@@ -277,6 +290,13 @@ export async function handleJournal(request: Request, env: JournalEnv, path: str
       const me = (await (await fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/getMe`)).json()) as { ok: boolean; result?: { username?: string } };
       return json({ bot: me.ok ? me.result?.username : null, configured });
     }
+    if (seg[0] === 'sheet-link' && m === 'GET') return json(await store.sheetStatus());
+    if (seg[0] === 'sheet-link' && m === 'POST') {
+      const key = await store.newSheetKey(user.email);
+      const base = `${new URL(request.url).origin}/api/sync/csv/${key}`;
+      return json({ cases: `${base}/cases.csv`, actions: `${base}/actions.csv` });
+    }
+    if (seg[0] === 'sheet-link' && m === 'DELETE') return json(await store.dropSheetKey(user.email));
     if (seg[0] === 'notify' && !seg[1] && m === 'GET') return json(await store.notifyStatus());
     if (seg[0] === 'notify' && seg[1] === 'code' && m === 'POST') return json({ code: await store.newNotifyCode(user.email) });
     if (seg[0] === 'notify' && seg[1] === 'test' && m === 'POST') {
