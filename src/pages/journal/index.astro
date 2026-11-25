@@ -9,14 +9,14 @@ import '../../styles/global.css';
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex, nofollow" />
-  <title>Журнал приймальні — Камельчук</title>
+  <title>⚡ Приймальня Юрія Камельчука</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet" />
 </head>
 <body class="jr">
   <header class="jbar">
-    <a class="jlogo" href="#/"><span>📥</span><strong>Журнал приймальні</strong></a>
+    <a class="jlogo" href="#/"><span>⚡</span><strong>ПРИЙМАЛЬНЯ ЮРІЯ КАМЕЛЬЧУКА</strong></a>
     <nav id="nav" class="jnav"></nav>
     <div id="me" class="jme"></div>
   </header>
@@ -27,14 +27,16 @@ import '../../styles/global.css';
 
 <style is:global>
   body.jr { background: var(--bg-soft); font-size: 15px; }
-  .jbar { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 20px; padding: 10px 20px; background: var(--ink-2); color: #fff; flex-wrap: wrap; }
-  .jlogo { display: flex; gap: 8px; align-items: center; text-decoration: none; font-family: var(--font-head); }
-  .jnav { display: flex; gap: 4px; flex: 1; flex-wrap: wrap; align-items: center; }
-  .jnav a { padding: 6px 10px; border-radius: 999px; text-decoration: none; color: #dfe3ea; font-weight: 600; font-size: .9rem; }
+  .jbar { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 14px; padding: 10px 20px; background: var(--ink-2); color: #fff; flex-wrap: wrap; }
+  .jlogo { display: flex; gap: 8px; align-items: center; text-decoration: none; font-family: var(--font-head); white-space: nowrap; }
+  .jlogo strong { font-size: .9rem; letter-spacing: .02em; }
+  .jnav { display: flex; gap: 2px; flex: 1; flex-wrap: wrap; align-items: center; }
+  .jnav a { white-space: nowrap; }
+  .jnav a { padding: 6px 9px; border-radius: 999px; text-decoration: none; color: #dfe3ea; font-weight: 600; font-size: .86rem; }
   .jnav a.active, .jnav a:hover { background: rgba(255,255,255,.12); color: #fff; }
   .jnav a.new { margin-left: auto; padding: 7px 16px; color: #062b28; }
-  .jnav a.help { background: #2ee6d6; color: #062b28; }
-  .jnav a.help:hover, .jnav a.help.active { background: #5ff0e3; color: #062b28; box-shadow: 0 0 0 2px rgba(255,255,255,.35); }
+  .jnav a.jhelp { background: #2ee6d6; color: #062b28; }
+  .jnav a.jhelp:hover, .jnav a.jhelp.active { background: #5ff0e3; color: #062b28; box-shadow: 0 0 0 2px rgba(255,255,255,.35); }
   /* інструкція */
   .help { max-width: 960px; margin: 0 auto; line-height: 1.6; }
   .help .lead { font-size: 1.05rem; }
@@ -64,6 +66,7 @@ import '../../styles/global.css';
   }
   .jme { display: flex; gap: 8px; align-items: baseline; font-size: .85rem; }
   .jme small { color: #aab0bb; }
+  @media (max-width: 1440px) { .jme small { display: none; } }
   .jme a { color: #aab0bb; margin-left: 6px; }
   .jwrap { max-width: 1280px; margin: 0 auto; padding: 24px 20px 64px; }
   .jr h1 { font-size: 1.6rem; margin: 0; }

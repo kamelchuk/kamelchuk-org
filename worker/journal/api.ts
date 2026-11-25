@@ -26,8 +26,8 @@ const json = (data: unknown, status = 200) =>
 function deny(html: boolean, status: number, msg: string) {
   if (!html) return json({ error: msg }, status);
   const body = `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
-<title>Журнал приймальні</title><body style="font-family:system-ui,sans-serif;max-width:560px;margin:15vh auto;padding:0 20px;color:#23252b">
-<h1 style="font-size:1.5rem">Журнал приймальні</h1><p>${msg}</p>
+<title>Приймальня Юрія Камельчука</title><body style="font-family:system-ui,sans-serif;max-width:560px;margin:15vh auto;padding:0 20px;color:#23252b">
+<h1 style="font-size:1.5rem">⚡ Приймальня Юрія Камельчука</h1><p>${msg}</p>
 <p><a href="/cdn-cgi/access/logout">Увійти з іншою адресою</a> · <a href="/">kamelchuk.org</a></p></body>`;
   return new Response(body, { status, headers: { 'content-type': 'text/html; charset=utf-8', ...NO_STORE } });
 }

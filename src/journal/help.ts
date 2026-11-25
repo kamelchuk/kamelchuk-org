@@ -9,8 +9,8 @@ const toc: [string, string][] = [
 
 export const HELP_HTML = `
 <article class="help">
-  <div class="head"><h1>Інструкція користування журналом</h1><span class="grow"></span><a class="btn btn-outline sm noprint" href="/journal/help/instrukciia-crm.pdf" download>Завантажити PDF</a></div>
-  <p class="lead">Журнал приймальні — це єдиний облік усіх справ команди: звернень громадян, листів, депутатських звернень і запитів, відповідей органів влади. Тут видно, що в роботі, у кого, які строки спливають і хто відповів відпискою.</p>
+  <div class="head"><h1>Інструкція користування CRM приймальні</h1><span class="grow"></span><a class="btn btn-outline sm noprint" href="/journal/help/instrukciia-crm.pdf" download>Завантажити PDF</a></div>
+  <p class="lead">«Приймальня Юрія Камельчука» (kamelchuk.org/journal) — це єдиний облік усіх справ команди: звернень громадян, листів, депутатських звернень і запитів, відповідей органів влади. Тут видно, що в роботі, у кого, які строки спливають і хто відповів відпискою.</p>
   <nav class="card toc"><b>Зміст</b><ol>${toc.map(([id, t]) => `<li><a href="#/help?s=${id}" data-s="${id}">${t}</a></li>`).join('')}</ol></nav>
 
   <section id="h-vkhid"><h2>1. Вхід і ролі</h2>
