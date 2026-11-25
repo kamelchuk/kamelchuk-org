@@ -103,28 +103,73 @@ async function appeal(request: Request, env: Env, ctx: ExecutionContext) {
   return json({ number: shown });
 }
 
+// ---------- публічна перевірка статусу ----------
+// Номер КЗ йде підряд, тому одного номера мало: потрібне ще прізвище (або назва організації) заявника,
+// чи останні 4 цифри телефону. Плюс обмеження: 10 перевірок за 10 хвилин з однієї адреси.
+const FALLBACK_CONTACTS: Record<string, string> = {
+  'Валерій Давидюк': '+38 068 128 30 38',
+  'Юлія Бондар': '+38 097 316 08 08',
+};
+const GENERAL_CONTACT = 'zvernennia@kamelchuk.org';
+const norm = (s: string) => s.toLowerCase().normalize('NFC').replace(/[ʼ’'`]/g, '').replace(/ё/g, 'е');
+const words = (s: string) => norm(s).split(/[^\p{L}\p{N}]+/u).filter((w) => w.length >= 3);
+const digits = (s: string) => s.replace(/\D/g, '');
+
+function factorOk(input: string, initiator: string, contact: string) {
+  const v = input.trim();
+  if (/^\d{4}$/.test(v)) { const d = digits(contact); return d.length >= 4 && d.endsWith(v); }
+  const w = words(v);
+  if (!w.length) return false;
+  const have = new Set(words(initiator));
+  return w.every((x) => have.has(x));
+}
+
+// «Петренко Іван Іванович» → «Петренко І. І.»; ініціали й назви організацій лишаємо як є.
+function shortName(full: string) {
+  const parts = full.trim().split(/\s+/);
+  const isName = parts.length >= 2 && parts.length <= 3 && parts.every((x) => /^\p{Lu}[\p{Ll}ʼ’'-]+$/u.test(x));
+  return isName ? `${parts[0]} ${parts.slice(1).map((x) => `${x[0]}.`).join(' ')}` : full.trim();
+}
+const uaDate = (iso?: string | null) => (iso && /^\d{4}-\d{2}-\d{2}/.test(iso) ? `${iso.slice(8, 10)}.${iso.slice(5, 7)}.${iso.slice(0, 4)}` : iso ?? '');
+
+async function status(request: Request, env: Env, url: URL) {
+  const ip = request.headers.get('cf-connecting-ip') ?? 'unknown';
+  const j = journal(env);
+  if (!(await j.rateOk(`status:${ip}`, 10, 10 * 60_000))) return json({ error: 'too many' }, 429);
+  // Номер справи КЗ-2026-0001 (латинські K/З теж приймаємо) або старий S1-11-2026.
+  const n = (url.searchParams.get('n')?.trim().toUpperCase() ?? '').replace(/^(KZ|КZ|KЗ)-/, 'КЗ-');
+  const who = url.searchParams.get('who')?.slice(0, 100) ?? '';
+  if (!who.trim()) return json({ error: 'need who' }, 400);
+  let id = '';
+  let siteRec: Record<string, string> | null = null;
+  if (/^КЗ-\d{4}-\d{1,4}$/.test(n)) {
+    const [, y, q] = n.split('-');
+    id = `КЗ-${y}-${q.padStart(4, '0')}`;
+  } else if (/^S\d+-\d{1,2}-\d{4}$/.test(n)) {
+    siteRec = (await store(env).get(n)) as Record<string, string> | null;
+    if (!siteRec) return json({ error: 'not found' }, 404);
+    id = siteRec.kz || (((await j.caseBySiteNumber(n).catch(() => null)) as { id?: string } | null)?.id ?? '');
+  } else return json({ error: 'bad number' }, 400);
+
+  const c = id ? await j.publicCase(id) : null;
+  if (c) {
+    if (!factorOk(who, c.initiator ?? '', c.contact ?? '')) return json({ error: 'not found' }, 404);
+    const contact = c.responsible_contact || FALLBACK_CONTACTS[c.responsible] || GENERAL_CONTACT;
+    return json({ number: c.id, status: publicStatus(c.status), opened: uaDate(c.opened), initiator: shortName(c.initiator ?? ''), responsible: c.responsible ?? '', contact });
+  }
+  if (siteRec && factorOk(who, siteRec.name ?? '', siteRec.phone ?? '')) {
+    return json({ number: n, status: siteRec.status, opened: String(siteRec.date ?? '').slice(0, 10), initiator: shortName(siteRec.name ?? ''), responsible: '', contact: GENERAL_CONTACT });
+  }
+  return json({ error: 'not found' }, 404);
+}
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext) {
     const url = new URL(request.url);
     if (url.hostname === 'www.kamelchuk.org') { url.hostname = 'kamelchuk.org'; return Response.redirect(url.toString(), 301); }
     const p = url.pathname.replace(/\/$/, '');
     if (p === '/api/appeal' && request.method === 'POST') return appeal(request, env, ctx);
-    if (p === '/api/status' && request.method === 'GET') {
-      // Номер справи КЗ-2026-0001 (латинські K/З теж приймаємо) або старий S1-11-2026.
-      const n = (url.searchParams.get('n')?.trim().toUpperCase() ?? '').replace(/^(KZ|КZ|KЗ)-/, 'КЗ-');
-      if (/^КЗ-\d{4}-\d{1,4}$/.test(n)) {
-        const [, y, q] = n.split('-');
-        const id = `КЗ-${y}-${q.padStart(4, '0')}`;
-        const c = await journal(env).getCaseStatus(id);
-        return c ? json({ number: id, status: publicStatus(c.status) }) : json({ error: 'not found' }, 404);
-      }
-      if (!/^S\d+-\d{1,2}-\d{4}$/.test(n)) return json({ error: 'bad number' }, 400);
-      const rec = await store(env).get(n);
-      if (!rec) return json({ error: 'not found' }, 404);
-      // Статус береться з журналу приймальні, якщо звернення вже там.
-      const c = (await journal(env).caseBySiteNumber(n).catch(() => null)) as unknown as { status?: string } | null;
-      return json({ number: n, status: c ? publicStatus(c.status) : (rec as Record<string, unknown>).status });
-    }
+    if (p === '/api/status' && request.method === 'GET') return status(request, env, url);
     if (p === '/api/admin/status' && request.method === 'POST') {
       if (!env.ADMIN_TOKEN || request.headers.get('authorization') !== `Bearer ${env.ADMIN_TOKEN}`) return json({ error: 'unauthorized' }, 401);
       const { number, status } = (await request.json()) as { number: string; status: string };

@@ -8,8 +8,8 @@ import { t, href } from '../i18n';
 const { lang } = Astro.props as { lang: Lang };
 const s = t(lang); const uk = lang === 'uk';
 const L = uk
-  ? { check: 'Перевірити статус звернення', ph: 'Номер, напр. КЗ-2026-0001', btn: 'Перевірити', st: { received: 'Прийнято', in_progress: 'В роботі', answered: 'Надано відповідь' } as Record<string, string>, nf: 'Звернення з таким номером не знайдено.', err: 'Не вдалося перевірити. Спробуйте пізніше.' }
-  : { check: 'Check appeal status', ph: 'Number, e.g. КЗ-2026-0001', btn: 'Check', st: { received: 'Received', in_progress: 'In progress', answered: 'Answered' } as Record<string, string>, nf: 'No appeal found with this number.', err: 'Could not check. Please try later.' };
+  ? { check: 'Перевірити статус звернення', ph: 'Номер, напр. КЗ-2026-0001', who: 'Прізвище заявника (або назва організації) чи 4 останні цифри телефону', btn: 'Перевірити', st: { received: 'Прийнято', in_progress: 'В роботі', answered: 'Надано відповідь' } as Record<string, string>, nf: 'Звернення не знайдено. Перевірте номер і прізвище.', many: 'Забагато спроб. Спробуйте за 10 хвилин.', err: 'Не вдалося перевірити. Спробуйте пізніше.', l: { opened: 'Дата звернення', initiator: 'Заявник', status: 'Статус', resp: 'Займається', contact: 'Контакт' } }
+  : { check: 'Check appeal status', ph: 'Number, e.g. КЗ-2026-0001', who: 'Applicant surname (or organisation) or last 4 phone digits', btn: 'Check', st: { received: 'Received', in_progress: 'In progress', answered: 'Answered' } as Record<string, string>, nf: 'Appeal not found. Check the number and surname.', many: 'Too many attempts. Try again in 10 minutes.', err: 'Could not check. Please try later.', l: { opened: 'Date', initiator: 'Applicant', status: 'Status', resp: 'Handled by', contact: 'Contact' } };
 ---
 <Base lang={lang} title={s.appeal} alt={href('appeal', uk ? 'en' : 'uk')}>
   <PageHead eyebrow={s.officeTitle} title={s.appeal} lead={s.officeText} />
@@ -18,10 +18,11 @@ const L = uk
     <aside>
       <div class="card">
         <h3>{L.check}</h3>
-        <form id="status" data-st={JSON.stringify(L.st)} data-nf={L.nf} data-err={L.err}>
-          <div class="field"><input name="n" required placeholder={L.ph} pattern="[Ss]\d+-\d{1,2}-\d{4}" /></div>
+        <form id="status" data-st={JSON.stringify(L.st)} data-l={JSON.stringify(L.l)} data-nf={L.nf} data-many={L.many} data-err={L.err}>
+          <div class="field"><input name="n" required placeholder={L.ph} autocomplete="off" /></div>
+          <div class="field"><input name="who" required placeholder={L.who} autocomplete="off" /></div>
           <button class="btn btn-outline" type="submit">{L.btn}</button>
-          <p class="out" hidden></p>
+          <div class="out" hidden></div>
         </form>
       </div>
       <div class="card" style="margin-top:20px">
@@ -37,13 +38,31 @@ const L = uk
   const f = document.getElementById('status') as HTMLFormElement;
   f?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const out = f.querySelector<HTMLParagraphElement>('.out')!;
-    const n = (new FormData(f).get('n') as string).trim().toUpperCase();
+    const out = f.querySelector<HTMLDivElement>(".out")!;
+    const fd = new FormData(f);
+    const n = (fd.get('n') as string).trim().toUpperCase();
+    const who = (fd.get('who') as string).trim();
     const st = JSON.parse(f.dataset.st!);
+    const l = JSON.parse(f.dataset.l!);
     try {
-      const r = await fetch(`/api/status?n=${encodeURIComponent(n)}`);
-      if (r.status === 404) out.textContent = f.dataset.nf!;
-      else { const j = await r.json(); out.replaceChildren(Object.assign(document.createElement('strong'), { textContent: j.number ?? n }), `: ${st[j.status] ?? j.status}`); }
+      const r = await fetch(`/api/status?n=${encodeURIComponent(n)}&who=${encodeURIComponent(who)}`);
+      if (r.status === 404 || r.status === 400) out.textContent = f.dataset.nf!;
+      else if (r.status === 429) out.textContent = f.dataset.many!;
+      else if (!r.ok) out.textContent = f.dataset.err!;
+      else {
+        const j = await r.json();
+        const dl = document.createElement('dl');
+        const row = (k: string, v: string, link?: string) => {
+          if (!v) return;
+          const dd = document.createElement('dd');
+          if (link) dd.append(Object.assign(document.createElement('a'), { href: link, textContent: v })); else dd.textContent = v;
+          dl.append(Object.assign(document.createElement('dt'), { textContent: k }), dd);
+        };
+        const c = String(j.contact ?? '');
+        row(l.opened, j.opened); row(l.initiator, j.initiator); row(l.status, st[j.status] ?? j.status); row(l.resp, j.responsible);
+        row(l.contact, c, c.includes('@') ? `mailto:${c}` : /^[+\d][\d\s()-]{6,}$/.test(c) ? `tel:${c.replace(/[^\d+]/g, '')}` : undefined);
+        out.replaceChildren(Object.assign(document.createElement('strong'), { textContent: j.number ?? n }), dl);
+      }
     } catch { out.textContent = f.dataset.err!; }
     out.hidden = false;
   });
@@ -52,4 +71,7 @@ const L = uk
   .ap { display: grid; grid-template-columns: 1.4fr 1fr; gap: 28px; align-items: start; }
   @media (max-width: 900px) { .ap { grid-template-columns: 1fr; } }
   .out { margin: 14px 0 0; }
+  .out dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 8px 0 0; }
+  .out dt { color: var(--muted, #6b6f78); }
+  .out dd { margin: 0; }
 </style>

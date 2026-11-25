@@ -499,6 +499,7 @@ async function teamView() {
     ${field('Email *', input('email', u.email, 'email', `required ${u.email ? 'readonly' : ''}`))}
     ${field('Ім\'я (як у «Відповідальний»)', select('name', D.responsible, u.name, 'Оберіть…'))}
     ${field('Роль', `<select name="role">${Object.entries(roleName).map(([k, v]) => `<option value="${k}" ${u.role === k ? 'selected' : ''}>${v}</option>`).join('')}</select>`)}
+    ${field('Контакт для громадян', input('public_contact', u.public_contact, 'text', 'placeholder="телефон або email, показується у перевірці статусу на сайті"'))}
     ${field('Активний', `<select name="active"><option value="1">так</option><option value="0" ${u.active === 0 ? 'selected' : ''}>ні (доступ закрито)</option></select>`)}
     <div class="wiz-nav span2"><button class="btn btn-primary sm">${u.email ? 'Зберегти' : 'Додати до команди'}</button></div>
   </form>`;

@@ -6,7 +6,7 @@ import { DEFAULT_DICTS, type Dicts } from './dicts';
 import { actionState, kyivToday, addDays, type ActionRow } from './logic';
 
 export type Role = 'admin' | 'assistant' | 'viewer';
-export interface User { email: string; name: string; role: Role; offices: string; active: number }
+export interface User { email: string; name: string; role: Role; offices: string; active: number; public_contact?: string }
 
 export const CASE_FIELDS = [
   'opened', 'source', 'initiator', 'contact', 'city', 'office', 'category', 'summary', 'details',
@@ -42,6 +42,7 @@ CREATE TABLE IF NOT EXISTS dicts (name TEXT PRIMARY KEY, items TEXT);
 CREATE TABLE IF NOT EXISTS notify (id INTEGER PRIMARY KEY AUTOINCREMENT, ts TEXT, case_id TEXT, text TEXT, files TEXT, sent_at TEXT);
 CREATE TABLE IF NOT EXISTS notify_chunks (file_id TEXT, n INTEGER, data BLOB, PRIMARY KEY (file_id, n));
 CREATE TABLE IF NOT EXISTS kv (k TEXT PRIMARY KEY, v TEXT);
+CREATE TABLE IF NOT EXISTS rate (k TEXT PRIMARY KEY, n INTEGER, exp INTEGER);
 CREATE TABLE IF NOT EXISTS log (id INTEGER PRIMARY KEY AUTOINCREMENT, ts TEXT, email TEXT, entity TEXT, entity_id TEXT, op TEXT, details TEXT);
 `;
 
@@ -51,7 +52,11 @@ const clean = (v: unknown) => (v === undefined || v === null ? null : String(v).
 export class JournalStore extends DurableObject {
   constructor(ctx: DurableObjectState, env: unknown) {
     super(ctx, env as never);
-    ctx.blockConcurrencyWhile(async () => { this.ctx.storage.sql.exec(SCHEMA); });
+    ctx.blockConcurrencyWhile(async () => {
+      this.ctx.storage.sql.exec(SCHEMA);
+      // Публічний контакт помічника (показується громадянам у перевірці статусу).
+      try { this.ctx.storage.sql.exec("ALTER TABLE users ADD COLUMN public_contact TEXT DEFAULT ''"); } catch { /* колонка вже є */ }
+    });
   }
 
   private q<T = Row>(sql: string, ...args: unknown[]): T[] {
@@ -70,9 +75,9 @@ export class JournalStore extends DurableObject {
     const email = String(u.email ?? '').trim().toLowerCase();
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) throw new Error('bad email');
     const role: Role = (['admin', 'assistant', 'viewer'] as const).includes(u.role as Role) ? (u.role as Role) : 'assistant';
-    this.q(`INSERT INTO users (email, name, role, offices, active) VALUES (?, ?, ?, ?, ?)
-            ON CONFLICT(email) DO UPDATE SET name = excluded.name, role = excluded.role, offices = excluded.offices, active = excluded.active`,
-      email, clean(u.name) ?? email, role, clean(u.offices) ?? '', u.active === 0 ? 0 : 1);
+    this.q(`INSERT INTO users (email, name, role, offices, active, public_contact) VALUES (?, ?, ?, ?, ?, ?)
+            ON CONFLICT(email) DO UPDATE SET name = excluded.name, role = excluded.role, offices = excluded.offices, active = excluded.active, public_contact = excluded.public_contact`,
+      email, clean(u.name) ?? email, role, clean(u.offices) ?? '', u.active === 0 ? 0 : 1, clean(u.public_contact)?.slice(0, 200) ?? '');
     this.log(by, 'user', email, 'save', { role, offices: u.offices, active: u.active });
     return this.getUser(email);
   }
@@ -179,6 +184,25 @@ export class JournalStore extends DurableObject {
   /** Лише статус — для публічної перевірки на сайті, без персональних даних. */
   async getCaseStatus(id: string) {
     return this.q<{ status: string }>('SELECT status FROM cases WHERE id = ?', id)[0] ?? null;
+  }
+
+  // Для публічної перевірки статусу: лише потрібні поля + публічний контакт відповідального.
+  async publicCase(id: string) {
+    const c = this.q<{ id: string; opened: string; initiator: string; contact: string; status: string; responsible: string }>(
+      'SELECT id, opened, initiator, contact, status, responsible FROM cases WHERE id = ?', id)[0];
+    if (!c) return null;
+    const u = this.q<{ public_contact: string }>("SELECT public_contact FROM users WHERE name = ? AND active = 1 AND public_contact <> '' LIMIT 1", c.responsible)[0];
+    return { ...c, responsible_contact: u?.public_contact ?? '' };
+  }
+  // Обмеження частоти: true, якщо ще можна (limit запитів за windowMs).
+  async rateOk(key: string, limit: number, windowMs: number) {
+    const now = Date.now();
+    this.q('DELETE FROM rate WHERE exp < ?', now);
+    const r = this.q<{ n: number }>('SELECT n FROM rate WHERE k = ?', key)[0];
+    if (r && r.n >= limit) return false;
+    if (r) this.q('UPDATE rate SET n = n + 1 WHERE k = ?', key);
+    else this.q('INSERT INTO rate (k, n, exp) VALUES (?, 1, ?)', key, now + windowMs);
+    return true;
   }
 
   async caseBySiteNumber(n: string) {
