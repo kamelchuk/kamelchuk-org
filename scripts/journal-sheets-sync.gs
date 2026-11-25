@@ -4,16 +4,20 @@
  * Аркуші «Справи» і «Дії» перезаписуються повністю (разом із колонками «(авто)», які рахує CRM),
  * тож формули аркуша «Звіт» продовжують працювати. Редагувати ці аркуші вручну не потрібно.
  *
+ * Вхід: скрипт показує CRM свій Google-акаунт (ScriptApp.getIdentityToken()). Працює, якщо цей акаунт —
+ * координатор журналу (роль admin). Секретів зберігати не треба. Запасний варіант — Script Property
+ * JOURNAL_TOKEN = секрет JOURNAL_EXPORT_TOKEN з Cloudflare.
+ *
  * Встановлення (один раз):
- * 1. Таблиця → Розширення → Apps Script → вставити цей файл → зберегти.
- * 2. Project Settings → Script Properties → додати JOURNAL_TOKEN = значення секрету JOURNAL_EXPORT_TOKEN з Cloudflare.
+ * 1. Таблиця → Розширення → Apps Script → вставити цей файл.
+ * 2. Project Settings → «Show appsscript.json» → замінити його вміст на scripts/journal-sheets-sync.appsscript.json.
  * 3. Запустити syncJournal() вручну (дати дозвіл), потім installTrigger() — і далі щогодини автоматично.
  */
 const JOURNAL_URL = 'https://kamelchuk.org/api/sync/journal';
 
 function syncJournal() {
-  const token = PropertiesService.getScriptProperties().getProperty('JOURNAL_TOKEN');
-  if (!token) throw new Error('Додайте JOURNAL_TOKEN у Script Properties');
+  const token = PropertiesService.getScriptProperties().getProperty('JOURNAL_TOKEN') || ScriptApp.getIdentityToken();
+  if (!token) throw new Error('Немає входу: додайте openid і userinfo.email в appsscript.json');
   const res = UrlFetchApp.fetch(JOURNAL_URL, { headers: { Authorization: 'Bearer ' + token }, muteHttpExceptions: true });
   if (res.getResponseCode() !== 200) throw new Error('CRM відповіла ' + res.getResponseCode() + ': ' + res.getContentText().slice(0, 200));
   const data = JSON.parse(res.getContentText());

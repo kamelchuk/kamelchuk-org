@@ -111,6 +111,33 @@ export class JournalStore extends DurableObject {
     return this.getCase(id);
   }
 
+  // Імпорт: справи з готовими номерами КЗ-РРРР-NNNN. Нова — вставляємо, наявна — оновлюємо передані поля.
+  async importCases(by: string, rows: Row[]) {
+    let created = 0, updated = 0;
+    const errors: string[] = [];
+    const ts = nowIso();
+    for (const r of rows) {
+      const m = /^КЗ-(\d{4})-(\d{1,6})$/.exec(String(r.id ?? '').trim());
+      if (!m) { errors.push(String(r.id ?? '?')); continue; }
+      const year = Number(m[1]), seq = Number(m[2]);
+      const id = `КЗ-${year}-${String(seq).padStart(4, '0')}`;
+      const fields = CASE_FIELDS.filter((f) => f in r);
+      const vals = fields.map((f) => clean(r[f]));
+      if (this.q('SELECT 1 FROM cases WHERE id = ?', id).length) {
+        if (fields.length) this.q(`UPDATE cases SET ${fields.map((f) => `${f} = ?`).join(', ')}, updated_at = ? WHERE id = ?`, ...vals, ts, id);
+        updated++;
+      } else {
+        const all = [...fields];
+        if (!all.includes('status')) { all.push('status'); vals.push('Нова'); }
+        this.q(`INSERT INTO cases (id, year, seq, ${all.join(', ')}, created_by, created_at, updated_at)
+                VALUES (?, ?, ?, ${all.map(() => '?').join(', ')}, ?, ?, ?)`, id, year, seq, ...vals, by, ts, ts);
+        created++;
+      }
+    }
+    this.log(by, 'case', '*', 'import', { created, updated, errors: errors.length });
+    return { created, updated, errors };
+  }
+
   async updateCase(by: string, id: string, data: Row) {
     const old = this.q('SELECT * FROM cases WHERE id = ?', id)[0];
     if (!old) return null;
