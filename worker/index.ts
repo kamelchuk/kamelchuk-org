@@ -131,7 +131,7 @@ export default {
       if (!STATUSES.includes(status)) return json({ error: 'bad status' }, 400);
       return (await store(env).setStatus(String(number).toUpperCase(), status)) ? json({ ok: true }) : json({ error: 'not found' }, 404);
     }
-    if (p === '/journal' || p.startsWith('/journal/') || p === '/api/journal' || p.startsWith('/api/journal/') || p === '/api/sync/journal' || p.startsWith('/api/notify/')) return handleJournal(request, env, p);
+    if (p === '/journal' || p.startsWith('/journal/') || p === '/api/journal' || p.startsWith('/api/journal/') || p === '/api/sync/journal' || p === '/api/sync/import' || p.startsWith('/api/notify/')) return handleJournal(request, env, p);
     if (p.startsWith('/api/')) return json({ error: 'not found' }, 404);
     return env.ASSETS.fetch(request);
   },

@@ -148,6 +148,13 @@ async function body(request: Request) {
 
 export async function handleJournal(request: Request, env: JournalEnv, path: string): Promise<Response> {
   // Синхронізація з Google-таблицею: окремий шлях поза Access, захищений токеном.
+  // Імпорт справ з Apps Script (вхід Google-акаунтом координатора, як і для копії в таблицю).
+  if (path === '/api/sync/import' && request.method === 'POST') {
+    if (!(await syncAllowed(request, env))) return json({ error: 'unauthorized' }, 401);
+    const b = (await request.json().catch(() => ({}))) as { cases?: Record<string, unknown>[] };
+    if (!Array.isArray(b.cases) || b.cases.length > 1000) return json({ error: 'bad cases' }, 400);
+    return json(await journal(env).importCases('sheets-import', b.cases as never));
+  }
   if (path === '/api/sync/journal') {
     if (!(await syncAllowed(request, env))) return json({ error: 'unauthorized' }, 401);
     const data = await list(journal(env));
