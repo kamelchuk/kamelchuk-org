@@ -240,15 +240,12 @@ export async function handleJournal(request: Request, env: JournalEnv, path: str
       if (!Array.isArray(b.cases) || b.cases.length > 1000) return json({ error: 'bad cases' }, 400);
       return json(await store.importCases(user.email, b.cases as never));
     }
-    // Telegram: перевірити бота і знайти id чатів людей, які натиснули Start.
+    // Telegram: перевірити бота (getUpdates не викликаємо — бот може працювати ще й на іншому сервері).
     if (seg[0] === 'telegram' && m === 'GET') {
-      if (!env.TELEGRAM_BOT_TOKEN) return json({ bot: null, chats: [], configured: [] });
-      const api = `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}`;
-      const me = (await (await fetch(`${api}/getMe`)).json()) as { ok: boolean; result?: { username?: string } };
-      const up = (await (await fetch(`${api}/getUpdates`)).json()) as { result?: { message?: { chat?: { id: number; first_name?: string; last_name?: string; username?: string; title?: string; type?: string } } }[] };
-      const chats = new Map<number, unknown>();
-      for (const u of up.result ?? []) { const c = u.message?.chat; if (c) chats.set(c.id, { id: c.id, name: c.title ?? [c.first_name, c.last_name].filter(Boolean).join(' '), username: c.username, type: c.type }); }
-      return json({ bot: me.ok ? me.result?.username : null, chats: [...chats.values()], configured: (env.TELEGRAM_CHAT_IDS ?? '').split(',').map((s) => s.trim()).filter(Boolean) });
+      const configured = (env.TELEGRAM_CHAT_IDS ?? '').split(',').map((s) => s.trim()).filter(Boolean);
+      if (!env.TELEGRAM_BOT_TOKEN) return json({ bot: null, configured });
+      const me = (await (await fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/getMe`)).json()) as { ok: boolean; result?: { username?: string } };
+      return json({ bot: me.ok ? me.result?.username : null, configured });
     }
     if (seg[0] === 'telegram' && seg[1] === 'test' && m === 'POST') {
       if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_CHAT_IDS) return json({ error: 'not configured' }, 400);

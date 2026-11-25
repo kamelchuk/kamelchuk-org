@@ -39,7 +39,7 @@
    - `JOURNAL_ADMINS` = email-и координаторів через кому (мають доступ завжди, навіть до заповнення «Команди»)
    - `JOURNAL_EXPORT_TOKEN` (Secret, необов'язково) = довгий випадковий рядок, якщо копію в таблицю робить не координатор
    - `TELEGRAM_BOT_TOKEN` (Secret) = токен бота від @BotFather, `TELEGRAM_CHAT_IDS` = id чатів через кому
-     (люди натискають Start у боті, id видно на `/api/journal/telegram`; перевірка — POST `/api/journal/telegram/test`)
+     (id людини можна дізнатися в @userinfobot; людина має натиснути Start у боті; перевірка — POST `/api/journal/telegram/test`)
 5. Відкрити https://kamelchuk.org/journal → «Команда» → додати кожного помічника (email, ім'я, роль).
    Новий помічник має бути і в політиці Access (крок 3), і в «Команді».
 6. **Копія в таблицю.** У таблиці «📥 ЖУРНАЛ. Камельчук» під акаунтом координатора: Розширення → Apps Script →
