@@ -19,10 +19,11 @@ npm run build    # статичний сайт у dist/
 - `src/content/news|blog|media/{uk,en}/*.md` — публікації. Українська та англійська версії однієї публікації мають однаковий `key`.
 - `src/views/*.astro` — сторінки (одна view на обидві мови), `src/pages/` — маршрути.
 - `worker/index.ts` — Worker: статика + API звернень (Durable Object для номерів і статусів).
+- `worker/journal/`, `src/journal/`, `src/pages/journal/` — журнал приймальні (CRM) на /journal, див. [docs/journal.md](docs/journal.md).
 
 ## Звернення
 
-`POST /api/appeal` приймає форму, присвоює номер `S{n}-{місяць}-{рік}` (лічильник щомісяця з 1, київський час), зберігає в KV і розсилає:
+`POST /api/appeal` приймає форму, створює справу в журналі приймальні з номером `КЗ-РРРР-NNNN` (його й отримує громадянин; технічний номер `S{n}-{місяць}-{рік}` лишається запасним) і розсилає:
 
 | Канал | Налаштування (змінні середовища Cloudflare Pages) |
 |---|---|
@@ -30,7 +31,7 @@ npm run build    # статичний сайт у dist/
 | Google Таблиця | `SHEETS_WEBHOOK_URL` (Apps Script, що дописує рядок) |
 | Email у приймальню + автовідповідь | `RESEND_API_KEY`, `MAIL_FROM`, `MAIL_TO` |
 
-`GET /api/status?n=S1-11-2026` повертає лише статус: `received` (прийнято), `in_progress` (в роботі), `answered` (надано відповідь).
+`GET /api/status?n=КЗ-2026-0001` (або старий `S1-11-2026`) повертає лише статус (з журналу приймальні): `received` (прийнято), `in_progress` (в роботі), `answered` (надано відповідь).
 `POST /api/admin/status` з `Authorization: Bearer $ADMIN_TOKEN` і `{number, status}` змінює статус.
 
 Хостинг: Cloudflare, команда збірки `npm run build`, папка `dist`, Node 22 (`.nvmrc`). `wrangler.jsonc` описує статичний сайт; деплой: `npx wrangler deploy`.
