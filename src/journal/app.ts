@@ -4,6 +4,7 @@
 //   #/case/ID     картка справи     #/team, #/dicts — для координатора
 import { STATE_LABEL, kyivToday, addDays, CLOSED_STATUSES, POOR_RATINGS } from '../../worker/journal/logic';
 import type { Dicts } from '../../worker/journal/dicts';
+import { HELP_HTML } from './help';
 
 type Any = Record<string, any>;
 interface Me { email: string; name: string; role: 'admin' | 'assistant' | 'viewer'; offices: string }
@@ -74,7 +75,8 @@ function nav() {
   const route = location.hash.split('?')[0] || '#/';
   const items: [string, string][] = [['#/', 'Дашборд'], ['#/cases', 'Усі справи'], ['#/my', 'Мої справи']];
   if (isAdmin()) items.push(['#/team', 'Команда'], ['#/dicts', 'Довідники']);
-  document.getElementById('nav')!.innerHTML = items.map(([h, t]) => `<a href="${h}" class="${route === h ? 'active' : ''}">${t}</a>`).join('')
+  items.push(['#/help', '📘 Інструкція']);
+  document.getElementById('nav')!.innerHTML = items.map(([h, t]) => `<a href="${h}" class="${route === h ? 'active' : ''}${h === '#/help' ? ' help' : ''}">${t}</a>`).join('')
     + (canWrite() ? '<a href="#/new" class="btn btn-primary new">+ Нова справа</a>' : '');
   document.getElementById('me')!.innerHTML = `<span>${esc(ME.name)}</span><small>${{ admin: 'координатор', assistant: 'помічник', viewer: 'перегляд' }[ME.role]}</small><a href="/cdn-cgi/access/logout" title="Вийти">Вийти</a>`;
 }
@@ -94,6 +96,7 @@ async function route() {
     if (parts[0] === 'case' && parts[1]) return await caseView(parts[1], params);
     if (parts[0] === 'team' && isAdmin()) return await teamView();
     if (parts[0] === 'dicts' && isAdmin()) return dictsView();
+    if (parts[0] === 'help') return helpView(params);
     view.innerHTML = '<p>Сторінку не знайдено. <a href="#/">На дашборд</a></p>';
   } catch (e) {
     view.innerHTML = `<div class="card err">${esc((e as Error).message)}</div>`;
@@ -559,6 +562,14 @@ function dictsView() {
     const items = k === 'actionTypes' ? lines.map((l) => { const [n, d] = l.split('|').map((s) => s.trim()); return { name: n, days: Number(d) > 0 ? Number(d) : null }; }) : lines;
     try { D = await api<Dicts>(`dicts/${k}`, 'PUT', { items }); toast('Довідник збережено'); } catch (err) { toast((err as Error).message, true); }
   }));
+}
+
+// ---------- інструкція ----------
+function helpView(params: URLSearchParams) {
+  view.innerHTML = HELP_HTML;
+  const go = (s: string | null) => { if (s) document.getElementById(`h-${s}`)?.scrollIntoView({ behavior: 'smooth' }); };
+  view.querySelectorAll<HTMLAnchorElement>('.toc a').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); history.replaceState(null, '', a.getAttribute('href')!); go(a.dataset.s!); }));
+  setTimeout(() => go(params.get('s')), 50);
 }
 
 // ---------- старт ----------

@@ -30,9 +30,38 @@ import '../../styles/global.css';
   .jbar { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 20px; padding: 10px 20px; background: var(--ink-2); color: #fff; flex-wrap: wrap; }
   .jlogo { display: flex; gap: 8px; align-items: center; text-decoration: none; font-family: var(--font-head); }
   .jnav { display: flex; gap: 4px; flex: 1; flex-wrap: wrap; align-items: center; }
-  .jnav a { padding: 6px 12px; border-radius: 999px; text-decoration: none; color: #dfe3ea; font-weight: 600; font-size: .9rem; }
+  .jnav a { padding: 6px 10px; border-radius: 999px; text-decoration: none; color: #dfe3ea; font-weight: 600; font-size: .9rem; }
   .jnav a.active, .jnav a:hover { background: rgba(255,255,255,.12); color: #fff; }
   .jnav a.new { margin-left: auto; padding: 7px 16px; color: #062b28; }
+  .jnav a.help { background: #2ee6d6; color: #062b28; }
+  .jnav a.help:hover, .jnav a.help.active { background: #5ff0e3; color: #062b28; box-shadow: 0 0 0 2px rgba(255,255,255,.35); }
+  /* інструкція */
+  .help { max-width: 960px; margin: 0 auto; line-height: 1.6; }
+  .help .lead { font-size: 1.05rem; }
+  .help section { background: #fff; border: 1px solid var(--line); border-radius: var(--radius); padding: 22px 24px; margin-bottom: 16px; scroll-margin-top: 80px; }
+  .help h2 { font-size: 1.25rem; margin-bottom: 12px; }
+  .help ol, .help ul { padding-left: 1.3em; }
+  .help li { margin: 4px 0; }
+  .help figure { margin: 16px 0; }
+  .help figure img { width: 100%; height: auto; border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 4px 14px rgba(20,30,50,.08); }
+  .help figure img[src*="13-status"] { max-width: 420px; }
+  .help figcaption { font-size: .85rem; color: #6b7280; margin-top: 6px; }
+  .help .tip { background: #dffcf8; border-left: 4px solid #00bfae; padding: 10px 14px; border-radius: 6px; }
+  .help .toc ol { columns: 2; margin: 8px 0 0; }
+  .help .toc a { text-decoration: none; }
+  .help .ht { border-collapse: collapse; margin: 12px 0; width: 100%; }
+  .help .ht th, .help .ht td { border: 1px solid var(--line); padding: 7px 10px; text-align: left; vertical-align: top; }
+  .help .ht th { background: var(--bg-soft); }
+  @media print {
+    .jbar, .noprint, .toast { display: none !important; }
+    body.jr { background: #fff; font-size: 12px; }
+    .jwrap { padding: 0; max-width: none; }
+    .help section { border: 0; padding: 0; margin: 0 0 18px; break-inside: auto; }
+    .help h2 { break-after: avoid; }
+    .help figure { break-inside: avoid; }
+    .help figure img { max-height: 235mm; width: auto; max-width: 100%; box-shadow: none; }
+    .help .toc { border: 1px solid var(--line); }
+  }
   .jme { display: flex; gap: 8px; align-items: baseline; font-size: .85rem; }
   .jme small { color: #aab0bb; }
   .jme a { color: #aab0bb; margin-left: 6px; }
