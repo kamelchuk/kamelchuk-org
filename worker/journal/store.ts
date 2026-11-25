@@ -43,6 +43,8 @@ CREATE TABLE IF NOT EXISTS notify (id INTEGER PRIMARY KEY AUTOINCREMENT, ts TEXT
 CREATE TABLE IF NOT EXISTS notify_chunks (file_id TEXT, n INTEGER, data BLOB, PRIMARY KEY (file_id, n));
 CREATE TABLE IF NOT EXISTS kv (k TEXT PRIMARY KEY, v TEXT);
 CREATE TABLE IF NOT EXISTS rate (k TEXT PRIMARY KEY, n INTEGER, exp INTEGER);
+CREATE TABLE IF NOT EXISTS case_files (id TEXT PRIMARY KEY, case_id TEXT NOT NULL, name TEXT, type TEXT, size INTEGER, ts TEXT);
+CREATE INDEX IF NOT EXISTS case_files_case ON case_files(case_id);
 CREATE TABLE IF NOT EXISTS log (id INTEGER PRIMARY KEY AUTOINCREMENT, ts TEXT, email TEXT, entity TEXT, entity_id TEXT, op TEXT, details TEXT);
 `;
 
@@ -166,6 +168,8 @@ export class JournalStore extends DurableObject {
   async deleteCase(by: string, id: string) {
     this.q('DELETE FROM actions WHERE case_id = ?', id);
     this.q('DELETE FROM notes WHERE case_id = ?', id);
+    for (const f of this.q<{ id: string }>('SELECT id FROM case_files WHERE case_id = ?', id)) this.q('DELETE FROM notify_chunks WHERE file_id = ?', f.id);
+    this.q('DELETE FROM case_files WHERE case_id = ?', id);
     this.q('DELETE FROM cases WHERE id = ?', id);
     this.log(by, 'case', id, 'delete', null);
     return true;
@@ -178,7 +182,8 @@ export class JournalStore extends DurableObject {
     const actions = this.q<ActionRow>('SELECT * FROM actions WHERE case_id = ? ORDER BY date, id', id).map((a) => ({ ...a, ...actionState(a, today) }));
     const notes = this.q('SELECT * FROM notes WHERE case_id = ? ORDER BY id DESC', id);
     const history = this.q('SELECT ts, email, op, entity, details FROM log WHERE entity_id = ? ORDER BY id DESC LIMIT 100', id);
-    return { ...c, actions, notes, history };
+    const attachments = this.q('SELECT id, name, type, size, ts FROM case_files WHERE case_id = ? ORDER BY ts, name', id);
+    return { ...c, actions, notes, history, attachments };
   }
 
   /** Лише статус — для публічної перевірки на сайті, без персональних даних. */
@@ -303,6 +308,8 @@ export class JournalStore extends DurableObject {
       const bytes = new Uint8Array(f.data);
       for (let i = 0, n = 0; i < bytes.length; i += CHUNK, n++) this.q('INSERT INTO notify_chunks (file_id, n, data) VALUES (?, ?, ?)', id, n, bytes.slice(i, i + CHUNK));
       meta.push({ id, name: f.name, type: f.type, size: bytes.length });
+      // Файл зі звернення лишається при справі назавжди (бот отримує його з тієї ж копії).
+      if (caseId) this.q('INSERT INTO case_files (id, case_id, name, type, size, ts) VALUES (?, ?, ?, ?, ?, ?)', id, caseId, f.name, f.type, bytes.length, nowIso());
     }
     this.q('INSERT INTO notify (ts, case_id, text, files) VALUES (?, ?, ?, ?)', nowIso(), caseId, text, JSON.stringify(meta));
   }
@@ -310,6 +317,12 @@ export class JournalStore extends DurableObject {
     this.kvSet('notify:last_poll', nowIso());
     return this.q<{ id: number; ts: string; case_id: string; text: string; files: string }>('SELECT id, ts, case_id, text, files FROM notify WHERE sent_at IS NULL ORDER BY id LIMIT 20')
       .map((r) => ({ ...r, files: JSON.parse(r.files || '[]') }));
+  }
+  async caseFile(caseId: string, fileId: string) {
+    const meta = this.q<{ name: string; type: string }>('SELECT name, type FROM case_files WHERE id = ? AND case_id = ?', fileId, caseId)[0];
+    if (!meta) return null;
+    const data = await this.notifyFile(fileId);
+    return data ? { ...meta, data } : null;
   }
   async notifyFile(fileId: string) {
     const parts = this.q<{ data: ArrayBuffer }>('SELECT data FROM notify_chunks WHERE file_id = ? ORDER BY n', fileId);
@@ -325,7 +338,9 @@ export class JournalStore extends DurableObject {
     for (const id of ids) {
       const r = this.q<{ files: string }>('SELECT files FROM notify WHERE id = ? AND sent_at IS NULL', id)[0];
       if (!r) continue;
-      for (const f of JSON.parse(r.files || '[]') as { id: string }[]) this.q('DELETE FROM notify_chunks WHERE file_id = ?', f.id);
+      for (const f of JSON.parse(r.files || '[]') as { id: string }[]) {
+        if (!this.q('SELECT 1 FROM case_files WHERE id = ?', f.id).length) this.q('DELETE FROM notify_chunks WHERE file_id = ?', f.id);
+      }
       this.q('UPDATE notify SET sent_at = ? WHERE id = ?', ts, id);
     }
     this.q("DELETE FROM notify WHERE sent_at IS NOT NULL AND sent_at < ?", new Date(Date.now() - 30 * 86400_000).toISOString());

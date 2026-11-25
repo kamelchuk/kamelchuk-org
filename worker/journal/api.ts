@@ -248,6 +248,11 @@ export async function handleJournal(request: Request, env: JournalEnv, path: str
       if (seg.length === 2 && m === 'GET') { const c = await store.getCase(id); return c ? json(c) : json({ error: 'not found' }, 404); }
       if (seg.length === 2 && m === 'PATCH') { const g = writeGuard(); if (g) return g; return json(await store.updateCase(user.email, id, await body(request))); }
       if (seg.length === 2 && m === 'DELETE') { if (!isAdmin) return json({ error: 'forbidden' }, 403); return json({ ok: await store.deleteCase(user.email, id) }); }
+      if (seg[2] === 'files' && seg[3] && m === 'GET') {
+        const f = await store.caseFile(id, seg[3]);
+        if (!f) return json({ error: 'not found' }, 404);
+        return new Response(f.data, { headers: { 'content-type': f.type || 'application/octet-stream', 'content-disposition': `attachment; filename*=UTF-8''${encodeURIComponent(f.name)}`, 'x-content-type-options': 'nosniff', ...NO_STORE } });
+      }
       if (seg[2] === 'actions' && m === 'POST') { const g = writeGuard(); if (g) return g; return json(await store.addAction(user.email, id, await body(request)), 201); }
       if (seg[2] === 'notes' && m === 'POST') {
         const b = await body(request);

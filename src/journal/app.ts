@@ -404,6 +404,7 @@ async function caseView(id: string, params: URLSearchParams) {
             <dt>Відповідальний</dt><dd>${esc(c.responsible || '—')}</dd>
             ${c.next_step ? `<dt>Наступний крок</dt><dd>${esc(c.next_step)}${c.next_date ? ` · до ${fd(c.next_date)}` : ''}</dd>` : ''}
             ${c.files ? `<dt>Папка / файли</dt><dd>${link(c.files)}</dd>` : ''}
+            ${c.attachments?.length ? `<dt>Файли зі звернення</dt><dd>${c.attachments.map((f: Any) => `<a href="/api/journal/cases/${encodeURIComponent(c.id)}/files/${encodeURIComponent(f.id)}">${esc(f.name)}</a> <span class="muted">${Math.max(1, Math.round(f.size / 1024))} КБ</span>`).join('<br>')}</dd>` : ''}
             ${c.result ? `<dt>Результат</dt><dd>${esc(c.result)}</dd>` : ''}
             ${c.closed ? `<dt>Закрито</dt><dd>${fd(c.closed)}</dd>` : ''}
           </dl>
