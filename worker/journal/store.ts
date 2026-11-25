@@ -39,6 +39,9 @@ CREATE INDEX IF NOT EXISTS actions_case ON actions(case_id);
 CREATE TABLE IF NOT EXISTS notes (id INTEGER PRIMARY KEY AUTOINCREMENT, case_id TEXT NOT NULL, ts TEXT, email TEXT, author TEXT, text TEXT);
 CREATE TABLE IF NOT EXISTS users (email TEXT PRIMARY KEY, name TEXT, role TEXT, offices TEXT DEFAULT '', active INTEGER DEFAULT 1);
 CREATE TABLE IF NOT EXISTS dicts (name TEXT PRIMARY KEY, items TEXT);
+CREATE TABLE IF NOT EXISTS notify (id INTEGER PRIMARY KEY AUTOINCREMENT, ts TEXT, case_id TEXT, text TEXT, files TEXT, sent_at TEXT);
+CREATE TABLE IF NOT EXISTS notify_chunks (file_id TEXT, n INTEGER, data BLOB, PRIMARY KEY (file_id, n));
+CREATE TABLE IF NOT EXISTS kv (k TEXT PRIMARY KEY, v TEXT);
 CREATE TABLE IF NOT EXISTS log (id INTEGER PRIMARY KEY AUTOINCREMENT, ts TEXT, email TEXT, entity TEXT, entity_id TEXT, op TEXT, details TEXT);
 `;
 
@@ -261,4 +264,85 @@ export class JournalStore extends DurableObject {
   }
 
   async recentLog(limit = 200) { return this.q('SELECT * FROM log ORDER BY id DESC LIMIT ?', limit); }
+
+  // ---------- черга сповіщень для бота (Крістофер забирає їх сам, токен бота лишається на його сервері) ----------
+  private kvGet(k: string) { return this.q<{ v: string }>('SELECT v FROM kv WHERE k = ?', k)[0]?.v ?? null; }
+  private kvSet(k: string, v: string | null) {
+    if (v === null) this.q('DELETE FROM kv WHERE k = ?', k);
+    else this.q('INSERT INTO kv (k, v) VALUES (?, ?) ON CONFLICT(k) DO UPDATE SET v = excluded.v', k, v);
+  }
+
+  async queueNotify(caseId: string, text: string, files: { name: string; type: string; data: ArrayBuffer }[] = []) {
+    const meta = [];
+    for (const f of files) {
+      const id = crypto.randomUUID();
+      const bytes = new Uint8Array(f.data);
+      for (let i = 0, n = 0; i < bytes.length; i += CHUNK, n++) this.q('INSERT INTO notify_chunks (file_id, n, data) VALUES (?, ?, ?)', id, n, bytes.slice(i, i + CHUNK));
+      meta.push({ id, name: f.name, type: f.type, size: bytes.length });
+    }
+    this.q('INSERT INTO notify (ts, case_id, text, files) VALUES (?, ?, ?, ?)', nowIso(), caseId, text, JSON.stringify(meta));
+  }
+  async pendingNotify() {
+    this.kvSet('notify:last_poll', nowIso());
+    return this.q<{ id: number; ts: string; case_id: string; text: string; files: string }>('SELECT id, ts, case_id, text, files FROM notify WHERE sent_at IS NULL ORDER BY id LIMIT 20')
+      .map((r) => ({ ...r, files: JSON.parse(r.files || '[]') }));
+  }
+  async notifyFile(fileId: string) {
+    const parts = this.q<{ data: ArrayBuffer }>('SELECT data FROM notify_chunks WHERE file_id = ? ORDER BY n', fileId);
+    if (!parts.length) return null;
+    const total = parts.reduce((s, p) => s + p.data.byteLength, 0);
+    const out = new Uint8Array(total);
+    let o = 0;
+    for (const p of parts) { out.set(new Uint8Array(p.data), o); o += p.data.byteLength; }
+    return out.buffer;
+  }
+  async ackNotify(ids: number[]) {
+    const ts = nowIso();
+    for (const id of ids) {
+      const r = this.q<{ files: string }>('SELECT files FROM notify WHERE id = ? AND sent_at IS NULL', id)[0];
+      if (!r) continue;
+      for (const f of JSON.parse(r.files || '[]') as { id: string }[]) this.q('DELETE FROM notify_chunks WHERE file_id = ?', f.id);
+      this.q('UPDATE notify SET sent_at = ? WHERE id = ?', ts, id);
+    }
+    this.q("DELETE FROM notify WHERE sent_at IS NOT NULL AND sent_at < ?", new Date(Date.now() - 30 * 86400_000).toISOString());
+    return { ok: true };
+  }
+  async notifyStatus() {
+    return {
+      connected: !!this.kvGet('notify:key'),
+      last_poll: this.kvGet('notify:last_poll'),
+      pending: this.q<{ n: number }>('SELECT COUNT(*) AS n FROM notify WHERE sent_at IS NULL')[0]?.n ?? 0,
+      code_pending: !!this.kvGet('notify:code'),
+    };
+  }
+  // Одноразовий код (діє 7 днів): бот обмінює його на постійний ключ. Зберігаємо лише хеші.
+  async newNotifyCode(by: string) {
+    const code = token(12);
+    this.kvSet('notify:code', JSON.stringify({ h: await sha(code), exp: Date.now() + 7 * 86400_000 }));
+    this.log(by, 'notify', 'code', 'create', null);
+    return code;
+  }
+  async claimNotify(code: string) {
+    const c = JSON.parse(this.kvGet('notify:code') ?? 'null') as { h: string; exp: number } | null;
+    if (!c || c.exp < Date.now() || c.h !== (await sha(code))) return null;
+    const key = token(32);
+    this.kvSet('notify:key', await sha(key));
+    this.kvSet('notify:code', null);
+    this.log('bot', 'notify', 'key', 'claim', null);
+    return key;
+  }
+  async checkNotifyKey(key: string) {
+    const h = this.kvGet('notify:key');
+    return !!h && !!key && h === (await sha(key));
+  }
+}
+
+const CHUNK = 1_000_000;
+function token(bytes: number) {
+  const b = crypto.getRandomValues(new Uint8Array(bytes));
+  return btoa(String.fromCharCode(...b)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+async function sha(s: string) {
+  const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+  return [...new Uint8Array(d)].map((x) => x.toString(16).padStart(2, '0')).join('');
 }
