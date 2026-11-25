@@ -76,7 +76,7 @@ function nav() {
   const items: [string, string][] = [['#/', 'Дашборд'], ['#/cases', 'Усі справи'], ['#/my', 'Мої справи']];
   if (isAdmin()) items.push(['#/team', 'Команда'], ['#/dicts', 'Довідники']);
   items.push(['#/help', '📘 Інструкція']);
-  document.getElementById('nav')!.innerHTML = items.map(([h, t]) => `<a href="${h}" class="${route === h ? 'active' : ''}${h === '#/help' ? ' help' : ''}">${t}</a>`).join('')
+  document.getElementById('nav')!.innerHTML = items.map(([h, t]) => `<a href="${h}" class="${route === h ? 'active' : ''}${h === '#/help' ? ' jhelp' : ''}">${t}</a>`).join('')
     + (canWrite() ? '<a href="#/new" class="btn btn-primary new">+ Нова справа</a>' : '');
   document.getElementById('me')!.innerHTML = `<span>${esc(ME.name)}</span><small>${{ admin: 'координатор', assistant: 'помічник', viewer: 'перегляд' }[ME.role]}</small><a href="/cdn-cgi/access/logout" title="Вийти">Вийти</a>`;
 }
