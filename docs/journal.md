@@ -37,11 +37,17 @@
    - `CF_ACCESS_TEAM_DOMAIN` = `kamelchuk.cloudflareaccess.com`
    - `CF_ACCESS_AUD` = тег з кроку 3
    - `JOURNAL_ADMINS` = email-и координаторів через кому (мають доступ завжди, навіть до заповнення «Команди»)
-   - `JOURNAL_EXPORT_TOKEN` (Secret) = довгий випадковий рядок, для копії в Google-таблицю
+   - `JOURNAL_EXPORT_TOKEN` (Secret, необов'язково) = довгий випадковий рядок, якщо копію в таблицю робить не координатор
+   - `TELEGRAM_BOT_TOKEN` (Secret) = токен бота від @BotFather, `TELEGRAM_CHAT_IDS` = id чатів через кому
+     (id людини можна дізнатися в @userinfobot; людина має натиснути Start у боті; перевірка — POST `/api/journal/telegram/test`)
 5. Відкрити https://kamelchuk.org/journal → «Команда» → додати кожного помічника (email, ім'я, роль).
    Новий помічник має бути і в політиці Access (крок 3), і в «Команді».
-6. **Копія в таблицю.** У таблиці «📥 ЖУРНАЛ. Камельчук»: Розширення → Apps Script → вставити `scripts/journal-sheets-sync.gs`,
-   Script Properties → `JOURNAL_TOKEN` = `JOURNAL_EXPORT_TOKEN`, запустити `syncJournal`, потім `installTrigger`.
+6. **Копія в таблицю.** У таблиці «📥 ЖУРНАЛ. Камельчук» під акаунтом координатора: Розширення → Apps Script →
+   вставити `scripts/journal-sheets-sync.gs`, у Project Settings увімкнути «Show appsscript.json» і вставити
+   `scripts/journal-sheets-sync.appsscript.json`, запустити `syncJournal`, потім `installTrigger`.
+   Скрипт входить Google-акаунтом (ID token), секрет не потрібен.
+7. **Імпорт старих справ.** Координатор: POST `/api/journal/import` з `{"cases":[{"id":"КЗ-2025-0001", …поля справи}]}`
+   — нові справи створюються з цим номером, наявні оновлюються. Нумерація нових справ продовжується після найбільшого номера року.
    Аркуші «Справи» і «Дії» далі лише копія з CRM — вручну їх не редагувати.
 
 ## Локальна розробка
