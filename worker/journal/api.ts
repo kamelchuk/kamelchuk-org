@@ -154,6 +154,29 @@ export async function handleJournal(request: Request, env: JournalEnv, path: str
     return json({ updated: new Date().toISOString(), cases: table(data.cases, CASE_COLS), actions: table(data.actions, ACTION_COLS) });
   }
 
+  // Черга сповіщень для бота (Крістофер): обмін коду на ключ, забрати нові, файл, підтвердити.
+  if (path.startsWith('/api/notify/')) {
+    const store = journal(env);
+    const seg = path.split('/').filter(Boolean).slice(2);
+    if (seg[0] === 'claim' && request.method === 'POST') {
+      const b = await body(request);
+      const key = await store.claimNotify(String(b.code ?? ''));
+      return key ? json({ key }) : json({ error: 'bad code' }, 403);
+    }
+    const key = (request.headers.get('authorization') ?? '').replace(/^Bearer\s+/i, '');
+    if (!(await store.checkNotifyKey(key))) return json({ error: 'unauthorized' }, 401);
+    if (seg[0] === 'pending' && request.method === 'GET') return json(await store.pendingNotify());
+    if (seg[0] === 'file' && seg[1] && request.method === 'GET') {
+      const data = await store.notifyFile(seg[1]);
+      return data ? new Response(data, { headers: { 'content-type': 'application/octet-stream', ...NO_STORE } }) : json({ error: 'not found' }, 404);
+    }
+    if (seg[0] === 'ack' && request.method === 'POST') {
+      const b = (await request.json().catch(() => ({}))) as { ids?: number[] };
+      return json(await store.ackNotify((b.ids ?? []).map(Number).filter(Number.isFinite)));
+    }
+    return json({ error: 'not found' }, 404);
+  }
+
   const isPage = !path.startsWith('/api/');
   const user = await currentUser(request, env);
   if (!user) {
@@ -246,6 +269,12 @@ export async function handleJournal(request: Request, env: JournalEnv, path: str
       if (!env.TELEGRAM_BOT_TOKEN) return json({ bot: null, configured });
       const me = (await (await fetch(`https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/getMe`)).json()) as { ok: boolean; result?: { username?: string } };
       return json({ bot: me.ok ? me.result?.username : null, configured });
+    }
+    if (seg[0] === 'notify' && !seg[1] && m === 'GET') return json(await store.notifyStatus());
+    if (seg[0] === 'notify' && seg[1] === 'code' && m === 'POST') return json({ code: await store.newNotifyCode(user.email) });
+    if (seg[0] === 'notify' && seg[1] === 'test' && m === 'POST') {
+      await store.queueNotify('', `Перевірка: сповіщення про звернення з kamelchuk.org працюють (${user.name}).`);
+      return json({ ok: true });
     }
     if (seg[0] === 'telegram' && seg[1] === 'test' && m === 'POST') {
       if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_CHAT_IDS) return json({ error: 'not configured' }, 400);

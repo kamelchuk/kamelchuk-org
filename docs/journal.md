@@ -57,3 +57,14 @@ npm run build
 npx wrangler dev --var JOURNAL_DEV_EMAIL:you@example.com --var JOURNAL_ADMINS:you@example.com
 # http://localhost:8787/journal/  (JOURNAL_DEV_EMAIL працює лише на localhost)
 ```
+
+## Сповіщення про звернення через бота-асистента
+
+Сайт не тримає токен Telegram-бота. Кожне звернення з форми потрапляє в чергу, а бот (Крістофер на сервері Hetzner)
+сам її забирає і надсилає Юрію та Юлії Бондар разом із файлами.
+
+1. Координатор: `POST /api/journal/notify/code` → одноразовий код (діє 7 днів).
+2. Бот: `POST /api/notify/claim` з `{"code": "…"}` → `{"key": "…"}`. Ключ зберігається лише на сервері бота.
+3. Бот щохвилини: `GET /api/notify/pending` (заголовок `Authorization: Bearer <key>`) → `[{id, case_id, text, files:[{id,name,type,size}]}]`;
+   файл — `GET /api/notify/file/<id>`; після надсилання — `POST /api/notify/ack` з `{"ids":[…]}`.
+4. Стан: `GET /api/journal/notify`, тест: `POST /api/journal/notify/test`.

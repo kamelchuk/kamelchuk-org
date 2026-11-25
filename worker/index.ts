@@ -81,6 +81,10 @@ async function appeal(request: Request, env: Env, ctx: ExecutionContext) {
   const shown = kz || a.number;
   const summary = `Звернення ${shown}${kz ? ` (сайт ${a.number})` : ''}\n${a.date}\n\n${a.name}\n${a.phone} · ${a.email}\n${a.region}, ${a.city}\nТема: ${a.topic}\n\n${a.text}`;
   const jobs: Promise<unknown>[] = [];
+  // Черга для бота-асистента (Крістофер забирає звернення і надсилає Юрію та Юлії, разом із файлами).
+  try {
+    await journal(env).queueNotify(kz, summary, await Promise.all(files.map(async (f) => ({ name: f.name, type: f.type, data: await f.arrayBuffer() }))));
+  } catch (e) { console.error('notify', e); }
 
   if (env.TELEGRAM_BOT_TOKEN && env.TELEGRAM_CHAT_IDS) {
     const api = `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}`;
@@ -127,7 +131,7 @@ export default {
       if (!STATUSES.includes(status)) return json({ error: 'bad status' }, 400);
       return (await store(env).setStatus(String(number).toUpperCase(), status)) ? json({ ok: true }) : json({ error: 'not found' }, 404);
     }
-    if (p === '/journal' || p.startsWith('/journal/') || p === '/api/journal' || p.startsWith('/api/journal/') || p === '/api/sync/journal') return handleJournal(request, env, p);
+    if (p === '/journal' || p.startsWith('/journal/') || p === '/api/journal' || p.startsWith('/api/journal/') || p === '/api/sync/journal' || p.startsWith('/api/notify/')) return handleJournal(request, env, p);
     if (p.startsWith('/api/')) return json({ error: 'not found' }, 404);
     return env.ASSETS.fetch(request);
   },
