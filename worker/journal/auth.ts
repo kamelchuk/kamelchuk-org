@@ -53,3 +53,37 @@ export async function accessEmail(request: Request, env: AuthEnv): Promise<strin
     return null;
   }
 }
+
+// Копія в Google-таблицю: Apps Script надсилає свій Google ID token (ScriptApp.getIdentityToken()).
+// Перевіряємо підпис Google, строк дії й підтверджений email — без спільних секретів.
+let gcerts: { keys: Jwk[]; at: number } | null = null;
+async function googleKeys(force = false) {
+  if (!force && gcerts && Date.now() - gcerts.at < 3600_000) return gcerts.keys;
+  const r = await fetch('https://www.googleapis.com/oauth2/v3/certs');
+  if (!r.ok) throw new Error('google certs');
+  const j = (await r.json()) as { keys: Jwk[] };
+  gcerts = { keys: j.keys, at: Date.now() };
+  return j.keys;
+}
+
+export async function googleEmail(token: string): Promise<string | null> {
+  const parts = token.split('.');
+  if (parts.length !== 3) return null;
+  try {
+    const header = b64uJson(parts[0]);
+    const payload = b64uJson(parts[1]);
+    if (header.alg !== 'RS256') return null;
+    if (payload.iss !== 'https://accounts.google.com' && payload.iss !== 'accounts.google.com') return null;
+    const now = Math.floor(Date.now() / 1000);
+    if (typeof payload.exp !== 'number' || payload.exp < now - 30) return null;
+    if (payload.email_verified !== true && payload.email_verified !== 'true') return null;
+    let jwk = (await googleKeys()).find((k) => k.kid === header.kid);
+    if (!jwk) jwk = (await googleKeys(true)).find((k) => k.kid === header.kid);
+    if (!jwk) return null;
+    const key = await crypto.subtle.importKey('jwk', jwk, { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' }, false, ['verify']);
+    const ok = await crypto.subtle.verify('RSASSA-PKCS1-v1_5', key, b64u(parts[2]), new TextEncoder().encode(`${parts[0]}.${parts[1]}`));
+    return ok && typeof payload.email === 'string' ? payload.email.toLowerCase() : null;
+  } catch {
+    return null;
+  }
+}

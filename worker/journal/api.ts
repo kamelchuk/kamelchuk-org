@@ -5,14 +5,16 @@
 //   viewer    — лише перегляд і дашборд
 // Поле «Приймальні» у користувача (через кому) обмежує, які справи він бачить; порожнє — усі.
 import type { JournalStore, User } from './store';
-import { accessEmail, type AuthEnv } from './auth';
+import { accessEmail, googleEmail, type AuthEnv } from './auth';
 import { CLOSED_STATUSES, POOR_RATINGS, daysBetween } from './logic';
 
 export interface JournalEnv extends AuthEnv {
   ASSETS: Fetcher;
   JOURNAL: DurableObjectNamespace<JournalStore>;
   JOURNAL_ADMINS?: string;        // email-и через кому, які завжди мають роль admin (перший вхід)
-  JOURNAL_EXPORT_TOKEN?: string;  // секрет для вивантаження в Google-таблицю (Apps Script)
+  JOURNAL_EXPORT_TOKEN?: string;  // необов'язковий секрет для вивантаження в Google-таблицю (замість Google-входу)
+  TELEGRAM_BOT_TOKEN?: string;
+  TELEGRAM_CHAT_IDS?: string;
 }
 
 export const journal = (env: JournalEnv) => env.JOURNAL.get(env.JOURNAL.idFromName('journal'));
@@ -30,13 +32,23 @@ function deny(html: boolean, status: number, msg: string) {
   return new Response(body, { status, headers: { 'content-type': 'text/html; charset=utf-8', ...NO_STORE } });
 }
 
-async function currentUser(request: Request, env: JournalEnv): Promise<User | null> {
-  const email = await accessEmail(request, env);
+async function userByEmail(email: string | null, env: JournalEnv): Promise<User | null> {
   if (!email) return null;
   const u = await journal(env).getUser(email);
   const admins = (env.JOURNAL_ADMINS ?? '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
   if (admins.includes(email)) return { email, name: u?.name ?? email, role: 'admin', offices: '', active: 1 };
   return u && u.active ? u : null;
+}
+const currentUser = async (request: Request, env: JournalEnv) => userByEmail(await accessEmail(request, env), env);
+
+// Хто може забрати копію для таблиці: секрет JOURNAL_EXPORT_TOKEN або Google-акаунт координатора (Apps Script).
+async function syncAllowed(request: Request, env: JournalEnv) {
+  const auth = request.headers.get('authorization') ?? '';
+  const token = auth.replace(/^Bearer\s+/i, '');
+  if (!token) return false;
+  if (env.JOURNAL_EXPORT_TOKEN && token === env.JOURNAL_EXPORT_TOKEN) return true;
+  const u = await userByEmail(await googleEmail(token), env);
+  return u?.role === 'admin';
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -137,7 +149,7 @@ async function body(request: Request) {
 export async function handleJournal(request: Request, env: JournalEnv, path: string): Promise<Response> {
   // Синхронізація з Google-таблицею: окремий шлях поза Access, захищений токеном.
   if (path === '/api/sync/journal') {
-    if (!env.JOURNAL_EXPORT_TOKEN || request.headers.get('authorization') !== `Bearer ${env.JOURNAL_EXPORT_TOKEN}`) return json({ error: 'unauthorized' }, 401);
+    if (!(await syncAllowed(request, env))) return json({ error: 'unauthorized' }, 401);
     const data = await list(journal(env));
     return json({ updated: new Date().toISOString(), cases: table(data.cases, CASE_COLS), actions: table(data.actions, ACTION_COLS) });
   }
@@ -222,6 +234,32 @@ export async function handleJournal(request: Request, env: JournalEnv, path: str
     if (seg[0] === 'users' && m === 'POST') return json(await store.saveUser(user.email, await body(request)));
     if (seg[0] === 'dicts' && seg[1] && m === 'PUT') { const b = await body(request); return json(await store.saveDict(user.email, seg[1], b.items)); }
     if (seg[0] === 'log' && m === 'GET') return json(await store.recentLog());
+    // Імпорт справ зі старих папок/таблиць: [{ id: 'КЗ-2025-0001', opened, initiator, … }] — створює або оновлює за id.
+    if (seg[0] === 'import' && m === 'POST') {
+      const b = (await request.json().catch(() => ({}))) as { cases?: Record<string, unknown>[] };
+      if (!Array.isArray(b.cases) || b.cases.length > 1000) return json({ error: 'bad cases' }, 400);
+      return json(await store.importCases(user.email, b.cases as never));
+    }
+    // Telegram: перевірити бота і знайти id чатів людей, які натиснули Start.
+    if (seg[0] === 'telegram' && m === 'GET') {
+      if (!env.TELEGRAM_BOT_TOKEN) return json({ bot: null, chats: [], configured: [] });
+      const api = `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}`;
+      const me = (await (await fetch(`${api}/getMe`)).json()) as { ok: boolean; result?: { username?: string } };
+      const up = (await (await fetch(`${api}/getUpdates`)).json()) as { result?: { message?: { chat?: { id: number; first_name?: string; last_name?: string; username?: string; title?: string; type?: string } } }[] };
+      const chats = new Map<number, unknown>();
+      for (const u of up.result ?? []) { const c = u.message?.chat; if (c) chats.set(c.id, { id: c.id, name: c.title ?? [c.first_name, c.last_name].filter(Boolean).join(' '), username: c.username, type: c.type }); }
+      return json({ bot: me.ok ? me.result?.username : null, chats: [...chats.values()], configured: (env.TELEGRAM_CHAT_IDS ?? '').split(',').map((s) => s.trim()).filter(Boolean) });
+    }
+    if (seg[0] === 'telegram' && seg[1] === 'test' && m === 'POST') {
+      if (!env.TELEGRAM_BOT_TOKEN || !env.TELEGRAM_CHAT_IDS) return json({ error: 'not configured' }, 400);
+      const api = `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}`;
+      const res = [];
+      for (const chat of env.TELEGRAM_CHAT_IDS.split(',').map((s) => s.trim()).filter(Boolean)) {
+        const r = await fetch(`${api}/sendMessage`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ chat_id: chat, text: 'Перевірка: сповіщення про звернення з kamelchuk.org працюють.' }) });
+        res.push({ chat, ok: r.ok });
+      }
+      return json(res);
+    }
   } catch (e) {
     return json({ error: (e as Error).message || 'error' }, 400);
   }
