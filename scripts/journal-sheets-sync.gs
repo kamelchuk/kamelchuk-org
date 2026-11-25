@@ -42,3 +42,36 @@ function installTrigger() {
   ScriptApp.getProjectTriggers().forEach(function (t) { if (t.getHandlerFunction() === 'syncJournal') ScriptApp.deleteTrigger(t); });
   ScriptApp.newTrigger('syncJournal').timeBased().everyHours(1).create();
 }
+
+// Разовий імпорт архівних справ з таблиці «📋 Розклад копіювання звернень», аркуш «Справи для CRM».
+// Номери КЗ зберігаються; повторний запуск лише оновлює ті самі справи.
+const IMPORT_SHEET_ID = '1e0N1nDtPoWYUYgaQtWnCUcB1aDYOhg8MzzcyHqNxmuU';
+function importArchive() {
+  const rows = SpreadsheetApp.openById(IMPORT_SHEET_ID).getSheetByName('Справи для CRM').getDataRange().getDisplayValues();
+  const h = rows.shift();
+  const col = function (name) { return h.indexOf(name); };
+  const SRC = { 'Звернення громадянина/організації': 'Звернення громадянина', 'Ініціатива депутата / листування': 'Ініціатива депутата' };
+  const cases = rows.filter(function (r) { return /^КЗ-\d{4}-\d+$/.test(r[col('ID КЗ')]); }).map(function (r) {
+    const d = [];
+    if (r[col('Тип')]) d.push('Тип: ' + r[col('Тип')]);
+    if (r[col('Документів')]) d.push('Документів у справі: ' + r[col('Документів')] + ' (вхідних ' + r[col('Вхідних')] + ', вихідних ' + r[col('Вихідних')] + '), останній ' + r[col('Останній документ')]);
+    d.push('Перенесено з архіву приймальні');
+    const c = { id: r[col('ID КЗ')], opened: r[col('Дата відкриття')], initiator: r[col('Ініціатор')], office: r[col('Приймальня')],
+      summary: r[col('Суть')], source: SRC[r[col('Джерело')]] || r[col('Джерело')], responsible: r[col('Відповідальний')],
+      files: r[col('Посилання на справу')], status: 'В роботі', details: d.join('\n') };
+    if (r[col('Населений пункт')]) c.city = r[col('Населений пункт')];
+    return c;
+  });
+  const token = PropertiesService.getScriptProperties().getProperty('JOURNAL_TOKEN') || ScriptApp.getIdentityToken();
+  const res = UrlFetchApp.fetch('https://kamelchuk.org/api/sync/import', { method: 'post', contentType: 'application/json',
+    headers: { Authorization: 'Bearer ' + token }, payload: JSON.stringify({ cases: cases }), muteHttpExceptions: true });
+  Logger.log(res.getResponseCode() + ' ' + res.getContentText().slice(0, 500));
+  if (res.getResponseCode() !== 200) throw new Error('CRM відповіла ' + res.getResponseCode());
+  syncJournal();
+}
+
+// Перший запуск: дозволити доступ, імпортувати архів, скопіювати CRM у таблицю і ввімкнути щогодинну копію.
+function setup() {
+  importArchive();
+  installTrigger();
+}
